@@ -1,11 +1,11 @@
 if (process.env.NODE_ENV == 'production') {
     // banco de produção
     module.exports = {
-        mongoURI: 'mongodb://valdjr:asdf000@ds051615.mlab.com:51615/vjr-teamorganizer'
+        mongoURI: ''
     }
 } else {
     // banco local
     module.exports = {
-        mongoURI: 'mongodb://valdjr:asdf000@ds051615.mlab.com:51615/vjr-teamorganizer'
+        mongoURI: 'mongodb://openhackDev:hackthon1937@ec2-54-207-50-196.sa-east-1.compute.amazonaws.com:27017/OpenHack_Dev?connectTimeoutMS=10000&authSource=admin&authMechanism=SCRAM-SHA-256'
     }
 }
