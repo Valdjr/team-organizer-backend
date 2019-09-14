@@ -8,11 +8,11 @@ const User = new Schema({
     },
     discord_id: {
         type: String,
-        required: true
+        required: false
     },
     avatar: {
         type: String,
-        required: true
+        required: false
     },
     role: {
         type: String,
