@@ -43,10 +43,14 @@ router.put('/:id', (req, res) => {
     })
 });
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
     const errors = [];
     if (!req.body.name) {
         errors.push({name: 'Name was not passed'});
+    }
+    
+    if (await Team.findOne({ name: req.body.name })) {
+        return res.status(400).json({ error: 'Team already exists' })
     }
     if (errors.length) {
         res.send({error: errors});
@@ -54,6 +58,7 @@ router.post('/', (req, res) => {
         const newTeam = {
             name: req.body.name
         };
+
         new Team(newTeam).save().then(() => {
             res.send({error: false});
         }).catch(err => {

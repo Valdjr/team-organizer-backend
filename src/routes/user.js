@@ -3,6 +3,8 @@ const router = express.Router();
 const mongoose = require('mongoose');
 require('../models/User');
 const User = mongoose.model('users');
+require('../models/Team');
+const Team = mongoose.model('teams');
 
 router.get('/all', (req, res) => {
     User.find().then(users => {
@@ -64,7 +66,7 @@ router.put('/:id', (req, res) => {
     })
 });
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
     const errors = [];
     if (!req.body.name) {
         errors.push({name: 'Name was not passed'});
@@ -75,26 +77,39 @@ router.post('/', (req, res) => {
     if (!req.body.skills) {
         errors.push({skills: 'Skills was not passed'});
     }
-    if (!req.body.exp) {
-        errors.push({exp: 'Exp was not passed'});
-    }
     if (!req.body.team_id) {
         errors.push({team_id: 'Team_id was not passed'});
     }
     //TODO validar se as skills são válidas
-    //TODO validar se o team_id existe
-    //TODO calcular o score/exp total
+    // verificando se usuário já existe
+    const userExists = await User.findOne({name: req.body.name});
+    if (userExists) {
+        return res.status(400).json({ error: 'User already exists' })
+    }
+    // verificando se Team existe
+    if (req.body.team_id.match(/^[0-9a-fA-F]{24}$/)) {
+        await Team.findById(req.body.team_id).then(team => {
+            if (!team) {
+                errors.push({ team_id: 'Team_id does not exists. Please create a Team.' });
+            }
+        }).catch(err => {
+            errors.push({ team_id: err });
+        });
+    } else {
+        errors.push({ team_id: 'Team_id is invalid.' });
+    }
+    // validando erros
     if (errors.length) {
-        res.send({error: errors});
+        return res.status(400).send({error: errors});
     } else {
         const newUser = {
             name: req.body.name,
             role: req.body.role,
             skills: req.body.skills,
-            exp: req.body.exp,
             team_id: req.body.team_id,
             discord_id: req.body.discord_id,
-            avatar: req.body.avatar
+            avatar: req.body.avatar,
+            exp: req.body.skills.reduce((total, skill) => total + skill.exp, 0),
         }
         new User(newUser).save().then(() => {
             res.send({error: false});
