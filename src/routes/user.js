@@ -87,17 +87,28 @@ router.post('/', async (req, res) => {
         return res.status(400).json({ error: 'User already exists' })
     }
     // verificando se Team existe
-    await Team.findById(req.body.team_id).catch(err => {
-        errors.push({ team_id: 'Team_id does not exists. Please create a Team.' });
-    });
+    if (req.body.team_id.match(/^[0-9a-fA-F]{24}$/)) {
+        await Team.findById(req.body.team_id).then(team => {
+            if (!team) {
+                errors.push({ team_id: 'Team_id does not exists. Please create a Team.' });
+            }
+        }).catch(err => {
+            errors.push({ team_id: err });
+        });
+    } else {
+        errors.push({ team_id: 'Team_id is invalid.' });
+    }
     // validando erros
     if (errors.length) {
         return res.status(400).send({error: errors});
     } else {
         const newUser = {
-            ...req.body,
-
-            //TODO calcular o score/exp total
+            name: req.body.name,
+            role: req.body.role,
+            skills: req.body.skills,
+            team_id: req.body.team_id,
+            discord_id: req.body.discord_id,
+            avatar: req.body.avatar,
             exp: req.body.skills.reduce((total, skill) => total + skill.exp, 0),
         }
         new User(newUser).save().then(() => {
