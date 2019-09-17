@@ -4,7 +4,14 @@ const Schema = mongoose.Schema;
 const User = new Schema({
     name: {
         type: String,
-        required: true
+        required: '[ERROR] Name is required'
+    },
+    email: {
+        type: String,
+        required: '[ERROR] Email is required',
+        trim: true,
+        lowercase: true,
+        unique: true
     },
     discord_id: {
         type: String,
@@ -14,8 +21,9 @@ const User = new Schema({
         type: String,
         required: false
     },
-    role: {
-        type: String,
+    role_id: {
+        type: Schema.Types.ObjectId,
+        ref: 'roles',
         required: true
     },
     skills: {
