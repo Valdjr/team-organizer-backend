@@ -1,0 +1,86 @@
+{
+  "Users": [
+    {
+      "id": 1,
+      "name": "Paulo",
+      "email": "paulo@teamorganizer.com",
+      "avatar": "",
+      "exp": 7,
+      "discord_id": "1805",
+      "role_id": 1,
+      "skill_id": 1,
+      "team_id": 9
+    },
+    {
+      "id": 2,
+      "name": "Valdir",
+      "email": "valdir@teamorganizer.com",
+      "avatar": "",
+      "exp": 6,
+      "discord_id": "1296",
+      "role_id": 2,
+      "skill_id": 4,
+      "team_id": 9
+    },
+    {
+      "id": 3,
+      "name": "Rodrigo",
+      "email": "rodrigo@teamorganizer.com",
+      "avatar": "",
+      "exp": 5,
+      "discord_id": "6650",
+      "role_id": 3,
+      "skill_id": 5,
+      "team_id": 9
+    },
+    {
+      "id": 4,
+      "name": "Carlos",
+      "email": "carlos@teamorganizer.com",
+      "avatar": "",
+      "exp": 4,
+      "discord_id": "7355",
+      "role_id": 4,
+      "skill_id": 7,
+      "team_id": 9
+    },
+    {
+      "id": 5,
+      "name": "José Edardo",
+      "email": "jerp@teamorganizer.com",
+      "avatar": "",
+      "exp": 2,
+      "discord_id": "9824",
+      "role_id": 5,
+      "skill_id": 8,
+      "team_id": 9
+    },
+    {
+      "id": 6,
+      "name": "Pedro",
+      "email": "pedro@outro.com",
+      "exp": 10,
+      "role_id": 1,
+      "skill_id": 2,
+      "team_id": 1
+    },
+    {
+      "id": 7,
+      "name": "Marcelo",
+      "email": "Marcelo@outro.com",
+      "exp": 1,
+      "role_id": 1,
+      "skill_id": 2,
+      "team_id": 1
+    },
+    {
+      "id": 8,
+      "name": "Tamis",
+      "email": "tamis@outro.com",
+      "exp": 8,
+      "role_id": 2,
+      "skill_id": 6,
+      "team_id": 1
+    }
+  ]
+}

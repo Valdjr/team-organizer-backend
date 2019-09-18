@@ -1,0 +1,33 @@
+{
+  "Setting": {
+    "minUser": 2,
+    "maxUser": 5,
+    "roles": [
+      {
+        "role_id": 1,
+        "min": 1,
+        "max": 2
+      },
+      {
+        "role_id": 2,
+        "min": 1,
+        "max": 2
+      },
+      {
+        "role_id": 3,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "role_id": 4,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "role_id": 5,
+        "min": 1,
+        "max": 1
+      }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "Roles": [
+    {
+      "id": 1,
+      "name": "Dev-Front",
+      "description": "Preparar as telas do projeto"
+    },
+    {
+      "id": 2,
+      "name": "Dev-Back",
+      "description": "Preparar as ligações do projeto"
+    },
+    {
+      "id": 3,
+      "name": "UI/UX Design",
+      "description": "Preparar a experiência dos usuários no projeto"
+    },
+    {
+      "id": 4,
+      "name": "Marketing",
+      "description": "Preparar a venda do projeto"
+    },
+    {
+      "id": 5,
+      "name": "Business",
+      "description": "Preparar as regras de negócio do projeto"
+    }
+  ]
+}
