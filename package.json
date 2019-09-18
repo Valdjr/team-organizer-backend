@@ -4,6 +4,7 @@
   "description": "team organizer for hackatons by roles and experiences",
   "main": "index.js",
   "scripts": {
+    "start": "node src/index.js",
     "dev": "nodemon src/index.js"
   },
   "repository": {
