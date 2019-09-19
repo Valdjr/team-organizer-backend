@@ -15,15 +15,19 @@ const validateEmail = function(email) {
 };
 
 router.get('/all', (req, res) => {
-    User.find().then(users => {
-        res.send(users);
+    User.find({}, {__v: 0}).populate('role_id', 'name', {__v: 0}).populate('team_id', {__v: 0})
+    .then(users => {
+        if(users.skills) {
+            users.score = users.skills.reduce((total, skill) => total + (user.exp * skill.level), 0);
+        }
+        res.json(users);
     }).catch(err => {
         res.send({error: err})
     });
 });
 
 router.get('/:id', (req, res) => {
-    User.findById(req.params.id).then(user => {
+    User.findById(req.params.id).populate('role_id').populate('team_id').then(user => {
         res.send(user);
     }).catch(err => {
         res.send({error: err})
@@ -39,7 +43,9 @@ router.delete('/:id', (req, res) => {
 });
 
 router.put('/:id', (req, res) => {
-    User.findById({_id: req.params.id}).then(user => {
+    console.time(`Atualizando o usuário com id '${req.params.id}'`);
+    User.findById({_id: req.params.id}).populate('role_id').populate('team_id')
+    .then(user => {
         const errors = [];
         if (req.body.name) {
             user.name = req.body.name;
@@ -104,14 +110,16 @@ router.put('/:id', (req, res) => {
         //TODO recalcular o score/exp total
         user.score =  user.skills.reduce((total, skill) => total + (user.exp * skill.level), 0);
 
-        user.save().then(() => {
-            res.send({error: false});
+        user.populate('role_id').save().then(() => {
+            res.send(user);
         }).catch(err => {
-            req.send({error: err});
+            res.send({error: `Aqui é o erro do save: ${err}` });
         })
     }).catch(err => {
-        req.send({error: err});
+        res.send({error: `Aqui é o erro do findById: ${err}` });
     })
+    console.log("continua...");
+    console.timeEnd(`Atualizando o usuário com id '${req.params.id}'`);
 });
 
 router.post('/', (req, res) => {
@@ -125,16 +133,19 @@ router.post('/', (req, res) => {
     if (!req.body.role_id) {
         errors.push({role_id: 'Role_id was not passed'});
     }
+    /* deixar a skill para a atualização
     if (!req.body.skills) {
         errors.push({skills: 'Skills was not passed'});
-    }
+    }*/
+    /* deixar o team_id qdo for sorteado o time
     if (!req.body.team_id) {
         errors.push({team_id: 'Team_id was not passed'});
-    }
+    }*/
     //TODO validar se as skills são válidas
     
     // verificando se usuário já existe, através do nome. PS: ACHO QUE PODE SER APAGADO
-    User.findOne({ name: req.body.name }).then(user => {
+    User.findOne({ name: req.body.name }).populate('role_id', 'name').populate('team_id')
+    .then(user => {
         if (user) {
             errors.push({ name: 'User already exists' });
         }
@@ -144,7 +155,7 @@ router.post('/', (req, res) => {
     
     // verificando se existe User, através do e-mail
     if (validateEmail(req.body.email) && req.body.email.match(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/)) {
-        User.findOne({ email: req.body.email }).then(user => {
+        User.findOne({ email: req.body.email }).populate('role_id', 'name').then(user => {
             if (user) {
                 errors.push({ email: 'User already exists' });
             }
@@ -169,7 +180,7 @@ router.post('/', (req, res) => {
     }
     
     // verificando se Team existe
-    if (req.body.team_id.match(/^[0-9a-fA-F]{24}$/)) {
+    /*if (req.body.team_id.match(/^[0-9a-fA-F]{24}$/)) {
         Team.findById(req.body.team_id).then(team => {
             if (!team) {
                 errors.push({ team_id: 'Team_id does not exists. Please create a Team.' });
@@ -179,7 +190,7 @@ router.post('/', (req, res) => {
         });
     } else {
         errors.push({ team_id: 'Team_id is invalid.' });
-    }
+    }*/
     
     // validando erros
     if (errors.length) {
@@ -189,15 +200,15 @@ router.post('/', (req, res) => {
             name: req.body.name,
             email: req.body.name,
             role_id: req.body.role_id,
-            skills: req.body.skills,
-            team_id: req.body.team_id,
+            //skills: req.body.skills,
+            //team_id: req.body.team_id,
             discord_id: req.body.discord_id,
             avatar: req.body.avatar,
             exp: req.body.exp,
             score: req.body.skills.reduce((total, skill) => total + (this.exp * skill.level), 0)
         }
-        new User(newUser).save().then(() => {
-            res.send({error: false});
+        new User(newUser).save().then(e => {
+            res.send(e.name, e.email);
         }).catch(err => {
             res.send({error: err});
         });

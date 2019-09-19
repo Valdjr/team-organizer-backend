@@ -37,7 +37,7 @@ const User = new Schema({
     team_id: {
         type: Schema.Types.ObjectId,
         ref: 'teams',
-        required: true
+        required: false
     }
 });
 

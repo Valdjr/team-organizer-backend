@@ -9,6 +9,7 @@ const db = require("./config/db");
 const user = require("./routes/user");
 const team = require("./routes/team");
 const role = require("./routes/role");
+const skill = require("./routes/skill");
 
 //body-parser
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -31,6 +32,7 @@ mongoose
 app.use(express.static(path.join(__dirname, "public")));
 
 //routes
+app.use("/skill", skill);
 app.use("/user", user);
 app.use("/team", team);
 app.use("/role", role);
@@ -38,5 +40,5 @@ app.use("/role", role);
 //server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log("Servidor rodando");
+  console.log(`Servidor '${process.env.NODE_ENV}' rodando na porta ${PORT}`);
 });
