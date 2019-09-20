@@ -5,8 +5,8 @@ require('../models/Skill');
 require('../models/Role');
 require('../models/User');
 const Skill = mongoose.model('skills');
-const Role = mongoose.model('roles');
-const User = mongoose.model('users');
+/*const Role = mongoose.model('roles');
+const User = mongoose.model('users');*/
 
 router.get('/:user_id/all', (req, res) => {
   console.log(`Chamou todos os Skills. ${req}`);
@@ -20,38 +20,105 @@ router.get('/:user_id/all', (req, res) => {
   });
 });
 
-router.get('/:user_id/:id', (req, res) => {});
+router.get('/:id', (req, res) => {
+  console.log(`Chamou o Skill '${req.params.id}'`);
+  const list = Skill.findById(req.params.id).then(skills => {
+    res.send(skills);
+  }).catch(err => err);
+  res.send(list);
+});
 
-router.delete('/:user_id/:id', (req, res) => {});
+router.delete('/:id', (req, res) => {
+  console.log(`Apagou o Skill '${req.params.id}'`);
+  const deleteSkill = Skill.findByIdAndDelete(req.params.id).then(e => {
+    //console.log(e._id);
+    res.send({ OK: `A Skill ID: ${e._id} foi apagada` })
+  }).catch(err => err);
+  res.send(deleteSkill);
+});
 
-router.put('/:user_id/:id', (req, res) => {});
+router.put('/:id', async (req, res) => {
+  const errors = [];
+  if (!req.body) {
+    return res.status(400).send({ error: 'No fields are filled' });
+  }
 
-router.post('/:user_id/', (req, res) => {
+  const skills = req.body.skills.map((num, index) => {
+    if (index < req.body.skills.length) {
+      if (num.name) {
+        if (!num.newName) {
+          errors.push({ error: `O campo 'newName' não foi preenchido no ${index+1}º skill` });
+        }
+      }
+
+      if (num.name) {
+        if (!num.level && (num.newLevel || num.oldLevel)) {
+          if (!num.newLevel) {
+            errors.push({ error: `O campo newLevel não foi preenchido no ${index+1}º skill` });
+          }
+          if (!num.oldLevel) {
+            errors.push({ error: `O campo oldLevel não foi preenchido no ${index+1}º skill` });
+          }
+        }
+      }
+      return num;
+    }
+  });
+  return res.send(skills.find(e => {
+    return e.oldName;
+  }));
+  
+  if (errors.length) {
+    return res.status(402).send(errors);
+  }
+
+  const updatedSkill = await Skill.findByIdAndUpdate({
+    _id: req.params.id,
+    role_id: req.body.role_id,
+  }, {
+    skills
+  });
+
+  return res.send(updatedSkill);
+});
+
+router.post('/', (req, res) => {
   const errors = [];
   if (!req.body.skills) {
     errors.push({ skills: 'Skills was not passed' });
   }
 
-  const arr = req.body.skills;
-  const teste = arr.forEach((skill, index) => {
-    
-    //  res.send({skill_name: `Skill Name was not passed in position ${index}`});
-    
-    res.send({ ok: `Nome: '${skill.name}' posição '${index}'` });
+  const skills = req.body.skills.map((num, index) => {
+    if (index < req.body.skills.length) {
+      if (num.name === undefined) {
+        errors.push({ error: `O campo NAME não foi preenchido no ${index+1}º skill` });
+      }
+      if (num.level === undefined) {
+        errors.push({ error: `O campo LEVEL não foi preenchido no ${index+1}º skill` });
+      }
+      return num;
+    }
   });
-  return res.send(teste);
-  if (req.body.skills.filter(skill => skill.name === null)) {
-    errors.push({ skill_name: 'Name Skill was not passed' });
-  }
-  
-  if (req.body.skills.filter(skill => skill.level === null)) {
-    errors.push({ skill_level: 'Level Skill was not passed' });
-  }
 
   if (!req.body.role_id) {
     errors.push({ role_id: 'Role was not passed' });
   }
-  return res.send(errors);
+  const newSkill = {
+    skills,
+    role_id: req.body.role_id,
+    user_id: req.params.user_id,
+  }
+  //return res.send({ ok: newSkill })
+  if (errors.length) {
+    res.status(400).send({ error: errors });
+  } else {
+    
+    new Skill(newSkill).save().then(e => {
+      res.send(e);
+    }).catch(err => {
+      res.status(400).send({ error: `Aqui é o erro do save: ${err}` })
+    });
+  }
 });
 
 module.exports = router;

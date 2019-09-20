@@ -3,10 +3,10 @@ const Schema = mongoose.Schema;
 
 const Skill = new Schema(
   {
-    Skill: [{
+    skills: [{
       name: {
         type: String,
-        required: 'Name os Skills is required',
+        required: 'Name is Skills is required',
       },
       level: {
         type: Number,

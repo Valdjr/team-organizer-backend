@@ -16,7 +16,7 @@
           "level": 4
         }
       ],
-      "role_id": { "user": "rol_id" }
+      "role_id": "5d8338cc84769a36faf8b065"
     },
     {
       "id": 2,
@@ -34,7 +34,7 @@
           "level": 3
         }
       ],
-      "role_id": { "user": "rol_id" }
+      "role_id": "5d8338cc84769a36faf8b065"
     },
     {
       "id": 3,
@@ -48,7 +48,7 @@
           "level": 3
         }
       ],
-      "role_id": { "user": "rol_id" }
+      "role_id": "5d83396b26993637ebcc6541"
     },
     {
       "id": 4,
@@ -66,7 +66,7 @@
           "level": 1
         }
       ],
-      "role_id": { "user": "rol_id" }
+      "role_id": "5d83396b26993637ebcc6541"
     },
     {
       "id": 5,
@@ -80,7 +80,7 @@
           "level": 4
         }
       ],
-      "role_id": { "user": "rol_id" }
+      "role_id": "5d83397726993637ebcc6542"
     },
     {
       "id": 6,
@@ -90,7 +90,7 @@
           "level": 2
         }
       ],
-      "role_id": { "user": "rol_id" }
+      "role_id": "5d83397726993637ebcc6542"
     },
     {
       "id": 7,
@@ -112,7 +112,7 @@
           "level": 1
         }
       ],
-      "role_id": { "user": "rol_id" }
+      "role_id": "5d8339c9b411e2381f429be1"
     },
     {
       "id": 8,
@@ -126,7 +126,7 @@
           "level": 2
         }
       ],
-      "role_id": { "user": "rol_id" }
+      "role_id": "5d8339ebb411e2381f429be2"
     }
   ]
 }

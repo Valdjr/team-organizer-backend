@@ -6,10 +6,10 @@ const mongoose = require("mongoose");
 const path = require("path");
 const db = require("./config/db");
 
-const user = require("./routes/user");
 const team = require("./routes/team");
 const role = require("./routes/role");
 const skill = require("./routes/skill");
+const user = require("./routes/user");
 
 //body-parser
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -22,7 +22,7 @@ mongoose
     useUnifiedTopology: true
   })
   .then(() => {
-    console.log("Conectado com sucesso no mongoDB");
+    console.log(`Conectado com sucesso no mongoDB: ${db.mongoURI}`);
   })
   .catch(err => {
     console.log("Erro ao conectar no mongoDB: " + err);
@@ -32,10 +32,10 @@ mongoose
 app.use(express.static(path.join(__dirname, "public")));
 
 //routes
-app.use("/skill", skill);
-app.use("/user", user);
 app.use("/team", team);
 app.use("/role", role);
+app.use("/skill", skill);
+app.use("/user", user);
 
 //server
 const PORT = process.env.PORT || 5000;
