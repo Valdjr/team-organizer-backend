@@ -9,8 +9,9 @@ const Skill = mongoose.model('skills');
 const User = mongoose.model('users');*/
 
 router.get('/:user_id/all', (req, res) => {
-  console.log(`Chamou todos os Skills. ${req}`);
-  Skill.find({user_id: req.params.user_id}).then(skills => {
+  console.log(`Chamou todos os Skills. ${req.header}`);
+  Skill.find({user_id: req.params.user_id}).populate('role_id', { name: 1 })
+  .populate('user_id', { name: 1, email: 1 }).then(skills => {
     if (!skills.length) {
       res.status(404).send({vazio: 'Não existe nenhuma Skill cadastrada'});
     }
@@ -22,7 +23,8 @@ router.get('/:user_id/all', (req, res) => {
 
 router.get('/:id', (req, res) => {
   console.log(`Chamou o Skill '${req.params.id}'`);
-  const list = Skill.findById(req.params.id).then(skills => {
+  const list = Skill.findById(req.params.id).populate('role_id', { name: 1 })
+  .populate('user_id', { name: 1, email: 1 }).then(skills => {
     res.send(skills);
   }).catch(err => err);
   res.send(list);
@@ -69,7 +71,8 @@ router.put('/:id', async (req, res) => {
     role_id: req.body.role_id,
   }, {
     skills: skills
-  });
+  }).populate('role_id', { name: 1 })
+  .populate('user_id', { name: 1, email: 1 });
 
   return res.send(updatedSkill);
 });
