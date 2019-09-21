@@ -18,7 +18,10 @@ const validateEmail = function(email) {
 };
 
 router.get('/all', (req, res) => {
-    User.find().then(users => {
+    //User.find().populate('role_id').then(users => {
+    User.find().populate('role_id', { name: 1 })
+    .populate('skill_id', { skills: 1, name: 1, level: 1 })
+    .populate('team_id', { name: 1, project: 1 }).then(users => {
         res.send(users);
     }).catch(err => {
         res.send({error: err})
@@ -26,7 +29,9 @@ router.get('/all', (req, res) => {
 });
 
 router.get('/:id', (req, res) => {
-    User.findById(req.params.id).then(user => {
+    User.findById(req.params.id).populate('role_id', { name: 1 })
+    .populate('skill_id', { skills: 1, name: 1, level: 1 })
+    .populate('team_id', { name: 1, project: 1 }).then(user => {
         res.send(user);
     }).catch(err => {
         res.status(400).send({error: err})
@@ -51,7 +56,7 @@ router.put('/:id', async (req, res) => {
         discord_id: Yup.string().max(5),
         avatar: Yup.string(),
         exp: Yup.number().min(1).max(50),
-        role_id: Yup.string().min(24).max(24),
+        // role_id: Yup.string().min(24).max(24),
         skill_id: Yup.string().min(24).max(24),
         team_id: Yup.string().min(24).max(24),
     });
@@ -62,34 +67,38 @@ router.put('/:id', async (req, res) => {
 
     if (errors.length) {
         return res.status(401).send({ error: errors });
-    }
-    const { skills } = await Skill.findById(req.body.skill_id);
+    } else {
+        const { role_id } = await User.findById(req.params.id);
+        const { skills } = await Skill.findById({
+            _id: req.body.skill_id,
+            user_id: req.params.id,
+            role_id: role_id
+        });
     
-    const updatedUser = await User.findByIdAndUpdate(req.params.id, {
-        name: req.body.name,
-        email: req.body.email,
-        discord_id: req.body.discord_id,
-        avatar: req.body.avatar,
-        exp: req.body.exp,
-        role_id: req.body.role_id,
-        skill_id: req.body.skill_id,
-        team_id: req.body.team_id,
-        score: skills.reduce((total, skill) => total + (req.body.exp * skill.level), 0),
-    }, {
-        name: 1,
-        email: 1,
-        score: 1,
-        discord_id: 1,
-        avatar: 1,
-        exp: 1,
-        role_id: 0,
-        skill_id: 0,
-        team_id: 0,
-    }).populate('role_id', { name: 1 })
-    .populate('skill_id', { skills: 1, name: 1, level: 1 })
-    .populate('team_id', { name: 1, project: 1 });
-    res.send(updatedUser);
-    console.timeEnd('Atualizando com async/await:');
+        const updatedUser = await User.findByIdAndUpdate(req.params.id, {
+            name: req.body.name,
+            email: req.body.email,
+            discord_id: req.body.discord_id,
+            avatar: req.body.avatar,
+            exp: req.body.exp,
+            // role_id: req.body.role_id,
+            skill_id: req.body.skill_id,
+            team_id: req.body.team_id,
+            score: skills.reduce((total, skill) => total + (req.body.exp * skill.level), 0),
+        }, {
+            name: 1,
+            email: 1,
+            score: 1,
+            discord_id: 1,
+            avatar: 1,
+            exp: 1,
+            role_id: 0,
+            skill_id: 0,
+            team_id: 0,
+        });
+        res.send(updatedUser);
+        console.timeEnd('Atualizando com async/await:');
+    }
 });
 
 router.post('/', (req, res) => {
@@ -100,61 +109,39 @@ router.post('/', (req, res) => {
     if (!req.body.email) {
         errors.push({ email: 'Email was not passed' });
     }
+    if (!req.body.exp) {
+        errors.push({ exp: 'Exp was not passed' });
+    }
     if (!req.body.role_id) {
         errors.push({role_id: 'Role_id was not passed'});
     }
-    /* deixar a skill para a atualização
-    if (!req.body.skills) {
-        errors.push({skills: 'Skills was not passed'});
-    }*/
-    /* deixar o team_id qdo for sorteado o time
-    if (!req.body.team_id) {
-        errors.push({team_id: 'Team_id was not passed'});
-    }*/
-    //TODO validar se as skills são válidas
-    
-    // verificando se usuário já existe, através do nome. PS: ACHO QUE PODE SER APAGADO
-    User.findOne({ name: req.body.name }).populate('role_id', 'name').populate('team_id')
-    .then(user => {
-        if (user) {
-            errors.push({ name: 'User already exists' });
-        }
-    }).catch(err => {
-        errors.push({ name: err });
-    });
-    
-    // verificando se existe User, através do e-mail
-    if (validateEmail(req.body.email) && req.body.email.match(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/)) {
-
-        User.findOne({ email: req.body.email }).then(user => {
-            if (user) {
-                errors.push({ email: 'User already exists' });
-            }
-        }).catch(err => {
-            errors.push({ email: err });
-        });
-    } else {
-        errors.push({ email: 'Email is invalid' });
-    }
-
-    
-    // verificando se Team existe
-    /*if (req.body.team_id.match(/^[0-9a-fA-F]{24}$/)) {
-        Team.findById(req.body.team_id).then(team => {
-            if (!team) {
-                errors.push({ team_id: 'Team_id does not exists. Please create a Team.' });
-            }
-        }).catch(err => {
-            errors.push({ team_id: err });
-        });
-    } else {
-        errors.push({ team_id: 'Team_id is invalid.' });
-    }*/
     
     // validando erros
     if (errors.length) {
         return res.status(400).send({error: errors});
     } else {
+        // verificando se usuário já existe, através do nome. PS: ACHO QUE PODE SER APAGADO
+        User.findOne({ name: req.body.name }).then(user => {
+            if (user) {
+                errors.push({ name: 'User already exists' });
+            }
+        }).catch(err => {
+            errors.push({ name: err });
+        });
+        
+        // verificando se existe User, através do e-mail
+        if (validateEmail(req.body.email) && req.body.email.match(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/)) {
+            User.findOne({ email: req.body.email }).then(user => {
+                if (user) {
+                    errors.push({ email: 'User already exists' });
+                }
+            }).catch(err => {
+                errors.push({ email: err });
+            });
+        } else {
+            errors.push({ email: 'Email is invalid' });
+        }
+        
         // verificando se role_id existe
         if (req.body.role_id.match(/^[0-9a-fA-F]{24}$/)) {
             Role.findById(req.body.role_id).then(role => {
@@ -168,6 +155,7 @@ router.post('/', (req, res) => {
         } else {
             errors.push({ role_id: 'Role_id is invalid.' });
         }
+        
         const newUser = {
             name: req.body.name,
             email: req.body.email,
@@ -175,10 +163,8 @@ router.post('/', (req, res) => {
             avatar: req.body.avatar,
             exp: req.body.exp,
             role_id: req.body.role_id
-            //skills: req.body.skills,
-            //team_id: req.body.team_id,
-           // score: req.body.skills.reduce((total, skill) => total + (this.exp * skill.level), 0)
         }
+        
         new User(newUser).save().then(e => {
             res.send({ user: e });
         }).catch(err => {
@@ -190,6 +176,20 @@ router.post('/', (req, res) => {
 module.exports = router;
 
 /**
+ * 
+        // verificando se Team existe
+        if (req.body.team_id.match(/^[0-9a-fA-F]{24}$/)) {
+            Team.findById(req.body.team_id).then(team => {
+                if (!team) {
+                    errors.push({ team_id: 'Team_id does not exists. Please create a Team.' });
+                }
+            }).catch(err => {
+                errors.push({ team_id: err });
+            });
+        } else {
+            errors.push({ team_id: 'Team_id is invalid.' });
+        }
+ * 
  * MUDEI PARA ASYNC/AWAIT
  * router.put('/:id', (req, res) => {
     console.time(`Atualizando o usuário com id '${req.params.id}'`);
