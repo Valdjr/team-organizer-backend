@@ -53,13 +53,13 @@ router.get(["/", "/:id"], async (req, res) => {
           }))
           .filter(group => group.users.length > 0);
         break;
-      case "exp":
-        let exps = users.map(user => user.exp);
-        exps = exps.filter((exp, pos) => exps.indexOf(exp) === pos);
+      case "score":
+        let scores = users.map(user => user.score);
+        scores = scores.filter((score, pos) => scores.indexOf(score) === pos);
 
-        users = exps.map(exp => {
-          const new_users = users.filter(user => user.exp === exp);
-          return { id: exp, name: `${exp}`, exp: true, users: new_users };
+        users = scores.map(score => {
+          const new_users = users.filter(user => user.score === score);
+          return { id: score, name: `${score}`, score: true, users: new_users };
         });
 
         break;
