@@ -55,10 +55,7 @@ router.get(["/", "/:id"], async (req, res) => {
         break;
       case "exp":
         let exps = users.map(user => user.exp);
-        exps = exps.filter((exp, pos) => {
-          console.log(exp);
-          return exps.indexOf(exp) === pos;
-        });
+        exps = exps.filter((exp, pos) => exps.indexOf(exp) === pos);
 
         users = exps.map(exp => {
           const new_users = users.filter(user => user.exp === exp);

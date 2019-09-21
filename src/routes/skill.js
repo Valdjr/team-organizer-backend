@@ -2,8 +2,8 @@ const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
 require("../models/Skill");
-require("../models/Role");
-require("../models/User");
+require("../models/Roles");
+require("../models/Users");
 const Skill = mongoose.model("skills");
 /*const Role = mongoose.model('roles');
 const User = mongoose.model('users');*/
