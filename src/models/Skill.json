@@ -1,0 +1,132 @@
+{
+  "Skills": [
+    {
+      "id": 1,
+      "skill": [
+        {
+          "name": "ReactJS",
+          "level": 5
+        },
+        {
+          "name": "React Native",
+          "level": 2
+        },
+        {
+          "name": "Bootstrap",
+          "level": 4
+        }
+      ],
+      "role_id": "5d8338cc84769a36faf8b065"
+    },
+    {
+      "id": 2,
+      "skill": [
+        {
+          "name": "jQuery",
+          "level": 2
+        },
+        {
+          "name": "CSS3",
+          "level": 5
+        },
+        {
+          "name": "Bootstrap",
+          "level": 3
+        }
+      ],
+      "role_id": "5d8338cc84769a36faf8b065"
+    },
+    {
+      "id": 3,
+      "skill": [
+        {
+          "name": "PHP",
+          "level": 4
+        },
+        {
+          "name": "MongoDB",
+          "level": 3
+        }
+      ],
+      "role_id": "5d83396b26993637ebcc6541"
+    },
+    {
+      "id": 4,
+      "skill": [
+        {
+          "name": "Node.js",
+          "level": 5
+        },
+        {
+          "name": "MongoDB",
+          "level": 4
+        },
+        {
+          "name": "Ruby",
+          "level": 1
+        }
+      ],
+      "role_id": "5d83396b26993637ebcc6541"
+    },
+    {
+      "id": 5,
+      "skill": [
+        {
+          "name": "Design Parttner",
+          "level": 3
+        },
+        {
+          "name": "Adobe XD",
+          "level": 4
+        }
+      ],
+      "role_id": "5d83397726993637ebcc6542"
+    },
+    {
+      "id": 6,
+      "skill": [
+        {
+          "name": "Adobe XD",
+          "level": 2
+        }
+      ],
+      "role_id": "5d83397726993637ebcc6542"
+    },
+    {
+      "id": 7,
+      "skill": [
+        {
+          "name": "Produto",
+          "level": 5
+        },
+        {
+          "name": "Consumidor",
+          "level": 2
+        },
+        {
+          "name": "Valores",
+          "level": 3
+        },
+        {
+          "name": "Informação",
+          "level": 1
+        }
+      ],
+      "role_id": "5d8339c9b411e2381f429be1"
+    },
+    {
+      "id": 8,
+      "skill": [
+        {
+          "name": "Pensar",
+          "level": 2
+        },
+        {
+          "name": "Planejar",
+          "level": 2
+        }
+      ],
+      "role_id": "5d8339ebb411e2381f429be2"
+    }
+  ]
+}
