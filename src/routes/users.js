@@ -24,7 +24,7 @@ router.get(["/", "/:id"], async (req, res) => {
   const { id } = req.params;
   const { filter, search, sort } = req.query;
 
-  const reg = new RegExp("^" + (!empty(search) ? search : ""));
+  const reg = new RegExp("^" + (!empty(search) ? search : ""), "i");
   const filterBy = !empty(id)
     ? { _id: id }
     : !empty(filter)
