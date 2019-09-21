@@ -43,30 +43,22 @@ router.put('/:id', async (req, res) => {
     return res.status(400).send({ error: 'No fields are filled' });
   }
 
-  const skills = req.body.skills.map((num, index) => {
+  const skills = await req.body.skills.map((num, index) => {
     if (index < req.body.skills.length) {
       if (num.name) {
-        if (!num.newName) {
-          errors.push({ error: `O campo 'newName' não foi preenchido no ${index+1}º skill` });
+        if (num.newName) {
+          num.name = num.newName;
+        }
+        if (num.newLevel) {
+          num.level = num.newLevel;
         }
       }
-
-      if (num.name) {
-        if (!num.level && (num.newLevel || num.oldLevel)) {
-          if (!num.newLevel) {
-            errors.push({ error: `O campo newLevel não foi preenchido no ${index+1}º skill` });
-          }
-          if (!num.oldLevel) {
-            errors.push({ error: `O campo oldLevel não foi preenchido no ${index+1}º skill` });
-          }
-        }
+      if (!num.name) {
+        errors.push({ name: 'Name not found' });
       }
       return num;
     }
   });
-  return res.send(skills.find(e => {
-    return e.oldName;
-  }));
   
   if (errors.length) {
     return res.status(402).send(errors);
@@ -76,7 +68,7 @@ router.put('/:id', async (req, res) => {
     _id: req.params.id,
     role_id: req.body.role_id,
   }, {
-    skills
+    skills: skills
   });
 
   return res.send(updatedSkill);
