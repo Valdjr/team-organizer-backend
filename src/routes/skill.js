@@ -63,19 +63,17 @@ router.put("/:id", async (req, res) => {
   }
 
   const skills = await req.body.skills.map((num, index) => {
-    //if (index <= req.body.skills.length) {
-      if (num.newName && num.name !== num.newName) {
-        num.name = num.newName;
-      }
-      if (num.newLevel && num.level !== num.newLevel) {
-        num.level = num.newLevel;
-      }
-      
-      if (!num.name) {
-        errors.push({ name: "Name not found" });
-      }
-      return num;
-    //}
+    if (num.newName && num.name !== num.newName) {
+      num.name = num.newName;
+    }
+    if (num.newLevel && num.level !== num.newLevel) {
+      num.level = num.newLevel;
+    }
+    
+    if (!num.name) {
+      errors.push({ name: "Name not found" });
+    }
+    return num;
   });
   
   if (errors.length) {
@@ -107,7 +105,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   const errors = [];
   if (!req.body.user_id) {
     errors.push({ user_id: "User was not passed" });
@@ -117,6 +115,12 @@ router.post("/", (req, res) => {
     errors.push({ skills: "Skills was not passed" });
   }
 
+  const skillExists = await User.findOne({ _id: req.body.user_id });
+
+  console.log(skillExists.skill_id);
+  if (skillExists.skill_id) {
+    errors.push('User already has Skill group, please update');
+  }
   const skills = req.body.skills.map((num, index) => {
     if (index < req.body.skills.length) {
       if (num.name === undefined) {
@@ -133,27 +137,34 @@ router.post("/", (req, res) => {
     }
   });
 
-  // informação repetida, já existe no usuário
-  /* if (!req.body.role_id) {
-    errors.push({ role_id: "Role was not passed" });
-  } */
   const newSkill = {
     skills,
-    // role_id: req.body.role_id,
     user_id: req.body.user_id
   };
   
   if (errors.length) {
     res.status(400).send({ error: errors });
   } else {
-    new Skill(newSkill)
-      .save()
-      .then(e => {
-        res.send(e.populate('user_id'));
+    const createdSkill = new Skill(newSkill).save()
+      .then(async e => {
+        const newScore = await newSkill.skills.reduce((total, skill) => total + skillExists.exp * skill.level, 0);
+        
+        const updatedUser = await User.findByIdAndUpdate(req.body.user_id, {
+          skill_id: e._id,
+          score: newScore,
+        }, { new: true });
+      
+        if (!updatedUser) {
+          return res.status(401).send({ error: 'Problema na atualização' })
+        }
+      
+        res.send({
+          createdSkill: e.populate('user_id'),
+          score: updatedUser.score });
       })
       .catch(err => {
-        res.status(400).send({ error: `Aqui é o erro do save: ${err}` });
-      });
+        res.status(400).send({ error: `Aqui é o erro do save do Skill: ${err}` });
+    });
   }
 });
 
