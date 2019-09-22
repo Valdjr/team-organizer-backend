@@ -108,12 +108,8 @@ router.put("/:id", async (req, res) => {
   if (errors.length) {
     return res.status(401).send({ error: errors });
   } else {
-    const { role_id } = await Users.findById(req.params.id);
-    const { skills } = await Skill.find({
-      user_id: req.params.id,
-      role_id: role_id
-    });
-
+    const { skills } = await Skill.findById(req.body.skill_id);
+    
     const updatedUser = await Users.findOneAndUpdate(
       { _id: req.params.id },
       {
@@ -220,6 +216,60 @@ router.post("/", (req, res) => {
       });
   }
 });
+
+exports.atualizaUser = async (req, res) => {
+  console.time("Atualizando com async/await:");
+  const errors = [];
+
+  const schema = Yup.object().shape({
+    name: Yup.string(),
+    email: Yup.string().email(),
+    discord_id: Yup.string().max(5),
+    avatar: Yup.string(),
+    exp: Yup.number()
+      .min(1)
+      .max(50),
+    // role_id: Yup.string().min(24).max(24),
+    skill_id: Yup.string()
+      .min(24)
+      .max(24),
+    team_id: Yup.string()
+      .min(24)
+      .max(24)
+  });
+
+  if (!(await schema.isValid(req.body))) {
+    errors.push({ menseger: "Please enter your information" });
+  }
+
+  if (errors.length) {
+    return res.status(401).send({ error: errors });
+  } else {
+    const { role_id } = await Users.findById(req.params.id);
+    const { skills } = await Skill.find({
+      user_id: req.params.id,
+      role_id: role_id
+    });
+
+    const updatedUser = await Users.findOneAndUpdate(
+      { _id: req.params.id },
+      {
+        ...req.body,
+        score: !empty(skills)
+          ? skills.reduce(
+              (total, skill) => total + req.body.exp * skill.level,
+              0
+            )
+          : 0
+      },
+      {
+        new: true
+      }
+    );
+    res.send(updatedUser);
+    console.timeEnd("Atualizando com async/await:");
+  }
+};
 
 module.exports = router;
 

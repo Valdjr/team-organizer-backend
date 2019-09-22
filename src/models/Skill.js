@@ -15,11 +15,12 @@ const Skill = new Schema(
         required: true,
       },
     }],
+    /* essa informação já existe no usuário
     role_id: {
       type: Schema.Types.ObjectId,
       ref: 'roles',
       required: true,
-    },
+    },*/
     user_id: {
       type: Schema.Types.ObjectId,
       ref: 'users',
