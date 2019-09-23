@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const path = require("path");
 const db = require("./config/db");
 
+const settings = require("./routes/settings");
 const team = require("./routes/team");
 const roles = require("./routes/roles");
 const skill = require("./routes/skill");
@@ -32,7 +33,7 @@ mongoose
     useFindAndModify: false
   })
   .then(() => {
-    console.log(`Conectado com sucesso no mongoDB: ${db.mongoURI}`);
+    console.log(`Conectado com sucesso no mongoDB`);
   })
   .catch(err => {
     console.log("Erro ao conectar no mongoDB: " + err);
@@ -42,6 +43,7 @@ mongoose
 app.use(express.static(path.join(__dirname, "public")));
 
 //routes
+app.use("/settings", settings);
 app.use("/team", team);
 app.use("/roles", roles);
 app.use("/skill", skill);

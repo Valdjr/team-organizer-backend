@@ -45,11 +45,30 @@ router.get("/:id", (req, res) => {
   res.send(list);
 });
 
+router.delete('/all', async (req, res) => {
+  console.log('Apagando todos os skills');
+  const skills = await Skill.find();
+
+  await skills.map(async (deletedId, index) => {
+    console.log(`aqui deve ser o id: ${deletedId._id}, e o index é ${index}`);
+    await User.findByIdAndUpdate({_id: deletedId.user_id}, {
+      score: 0,
+      skill_id: undefined,
+    });
+    await Skill.findByIdAndDelete(deletedId._id);
+  });
+  
+  return res.send({ ok: `Foram apagados ${skills.length}` });
+});
+
 router.delete("/:id", (req, res) => {
   console.log(`Apagou o Skill '${req.params.id}'`);
   const deleteSkill = Skill.findByIdAndDelete(req.params.id)
-    .then(e => {
-      //console.log(e._id);
+    .then(async e => {
+      await User.findByIdAndUpdate({_id: e.user_id}, {
+        score: 0,
+        skill_id: undefined,
+      });
       res.send({ OK: `A Skill ID: ${e._id} foi apagada` });
     })
     .catch(err => err);
