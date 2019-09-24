@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const empty = require('is-empty');
 const mongoose = require('mongoose');
 require('../models/Team');
+require('../models/Users');
 const Team = mongoose.model('teams');
+const User = mongoose.model('users');
 
 router.get('/all', (req, res) => {
     Team.find({}, { // campos escondidos
@@ -23,6 +26,28 @@ router.get('/:id', (req, res) => {
         res.send({error: err});
     });
 });
+
+/* usar apenas quando for apagar tudo*/
+router.delete('/all', async (req, res) => {
+    console.log('Apagando todos os Teams');
+    const teams = await Team.find();
+  
+    await teams.map(async (deleted, index) => {
+      console.log(`aqui deve ser o id: ${deleted._id}, e o index é ${index}`);
+      const users = await Team.find();
+      
+      await users.map(async (deleted, index) => {
+        
+        await User.findByIdAndUpdate({ _id: deleted._id }, {
+            team_id: undefined,
+        });
+      });
+
+      await Team.findByIdAndDelete(deleted._id);
+    });
+    
+    return res.send({ ok: `Foram apagados ${teams.length}` });
+});/**/
 
 router.delete('/:id', (req, res) => {
     Team.findByIdAndRemove({_id: req.params.id}).then(team => {

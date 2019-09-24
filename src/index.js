@@ -11,6 +11,7 @@ const team = require("./routes/team");
 const roles = require("./routes/roles");
 const skill = require("./routes/skill");
 const users = require("./routes/users");
+const sort = require("./routes/sort");
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -48,6 +49,7 @@ app.use("/team", team);
 app.use("/roles", roles);
 app.use("/skill", skill);
 app.use("/users", users);
+app.use("/sort", sort);
 
 //server
 const PORT = process.env.PORT || 5000;

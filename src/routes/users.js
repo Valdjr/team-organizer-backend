@@ -67,7 +67,7 @@ router.get(["/", "/:id"], async (req, res) => {
     }
   }
 
-  return res.json(users);
+  return res.json({qtd: users.length, users});
 });
 
 router.delete("/:id", (req, res) => {
@@ -183,7 +183,6 @@ router.post("/", (req, res) => {
     if (req.body.role_id.match(/^[0-9a-fA-F]{24}$/)) {
       Roles.findById(req.body.role_id)
         .then(role => {
-          console.log(role);
           if (!role) {
             errors.push({
               role_id: "Role_id does not exists. Please create a Role."

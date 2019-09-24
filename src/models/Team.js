@@ -17,7 +17,13 @@ const Team = new Schema(
             type: String,
             required: false,
             maxlength: 255,
-        }
+        },
+        users: [{
+            user_id: {
+                type: Schema.Types.ObjectId,
+                ref: 'users'
+            }
+        }]
     },
     {
         timestamps: true,
