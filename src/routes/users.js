@@ -108,8 +108,10 @@ router.put("/:id", async (req, res) => {
   if (errors.length) {
     return res.status(401).send({ error: errors });
   } else {
-    const { skills } = await Skill.findById(req.body.skill_id);
-    
+    const { skills } = !empty(req.body.skill_id)
+      ? await Skill.findById(req.body.skill_id)
+      : "";
+
     const updatedUser = await Users.findOneAndUpdate(
       { _id: req.params.id },
       {
