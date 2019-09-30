@@ -67,7 +67,7 @@ router.get(["/", "/:id"], async (req, res) => {
     }
   }
 
-  return res.json({qtd: users.length, users});
+  return res.json({ qtd: users.length, users });
 });
 
 router.delete("/:id", (req, res) => {
@@ -78,6 +78,24 @@ router.delete("/:id", (req, res) => {
     .catch(err => {
       res.send({ error: err });
     });
+});
+
+router.put("/atualizaExp", async (req, res) => {
+  const users = await Users.find({ exp: [0, 1, 2] });
+
+  const updatedUsers = users.map(async u => {
+    await Users.findByIdAndUpdate(
+      u._id,
+      { exp: Math.floor(Math.random() * 40) },
+      { new: true }
+    );
+    return {
+      name: u.name,
+      exp: u.exp
+    };
+  });
+
+  return res.send({ updatedUsers });
 });
 
 router.put("/:id", async (req, res) => {
