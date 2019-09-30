@@ -114,33 +114,29 @@ router.post('/', async (req, res) => {
   if (empty(req.body)) {
     errors.push({ body: "No fields are filled" });
   } else {
-    if (empty(req.body.settings)) {
-      errors.push({ settings: "Settings does not filled" });
+    if (empty(req.body.name)) {
+      errors.push({ minUser: "name was not passed" });
+    }
+    if (empty(req.body.minUser)) {
+      errors.push({ minUser: "minUser was not passed" });
+    }
+    if (empty(req.body.maxUser)) {
+      errors.push({ maxUser: "maxUser was not passed" });
+    }
+    if (empty(req.body.roles)) {
+      errors.push({ roles: "roles was not passed" });
     } else {
-      if (empty(req.body.settings.name)) {
-        errors.push({ minUser: "name was not passed" });
-      }
-      if (empty(req.body.settings.minUser)) {
-        errors.push({ minUser: "minUser was not passed" });
-      }
-      if (empty(req.body.settings.maxUser)) {
-        errors.push({ maxUser: "maxUser was not passed" });
-      }
-      if (empty(req.body.settings.roles)) {
-        errors.push({ roles: "roles was not passed" });
-      } else {
-        await req.body.settings.roles.map((num, index) => {
-          if (empty(num.role_id)) {
-            errors.push({ role_id: `role_id was not passed in ${index} position` });
-          }
-          if (empty(num.minRole)) {
-            errors.push({ minRole: `minRole was not passed in ${index+1} position` });
-          }
-          if (empty(num.maxRole)) {
-            errors.push({ maxRole: `maxRole was not passed in ${index+1} position` });
-          }
-        });
-      }
+      await req.body.roles.map((num, index) => {
+        if (empty(num.role_id)) {
+          errors.push({ role_id: `role_id was not passed in ${index} position` });
+        }
+        if (empty(num.minRole)) {
+          errors.push({ minRole: `minRole was not passed in ${index+1} position` });
+        }
+        if (empty(num.maxRole)) {
+          errors.push({ maxRole: `maxRole was not passed in ${index+1} position` });
+        }
+      });
     }
   }
   
