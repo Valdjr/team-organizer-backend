@@ -42,7 +42,7 @@ const usuariosPorTime = async () => {
   for (var i=maxUser; i>=minUser; i--) {
     var numeroDeTimes = parseInt(totalUsers/i);
     var resto = totalUsers%i;
-    if (resto >= minUser) {
+    if (resto >= minUser || resto == 0) {
       usersPorTime.push({users: i, numeroDeTimes: numeroDeTimes, sucesso: true, usersNoUltimoTime: resto});
     } else {
       usersPorTime.push({users: i, numeroDeTimes: numeroDeTimes, sucesso: false, usersNoUltimoTime: resto, falta: minUser-resto});
