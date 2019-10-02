@@ -12,6 +12,7 @@ const roles = require("./routes/roles");
 const skill = require("./routes/skill");
 const users = require("./routes/users");
 const sort = require("./routes/sort");
+const criarUsers = require("./routes/criarUsers");
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -50,6 +51,7 @@ app.use("/roles", roles);
 app.use("/skill", skill);
 app.use("/users", users);
 app.use("/sort", sort);
+app.use("/criarUsers", criarUsers);
 
 //server
 const PORT = process.env.PORT || 5000;
