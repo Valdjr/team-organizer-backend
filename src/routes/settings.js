@@ -1,11 +1,11 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const mongoose = require('mongoose');
-const empty = require('is-empty');
-require('../models/Settings');
-const Settings = mongoose.model('settings');
+const mongoose = require("mongoose");
+const empty = require("is-empty");
+require("../models/Settings");
+const Settings = mongoose.model("settings");
 
-router.get(['/', '/:id'], async (req, res) => {
+router.get(["/", "/:id"], async (req, res) => {
   const { id } = req.params;
   const { filter, search, sort } = req.query;
 
@@ -17,7 +17,7 @@ router.get(['/', '/:id'], async (req, res) => {
     : {};
 
   let settings = await Settings.find(filterBy)
-    .populate('role_id')
+    .populate("role_id")
     .catch(err => {
       res.status(400).send({ error: err });
     });
@@ -53,23 +53,23 @@ router.get(['/', '/:id'], async (req, res) => {
   return res.send(settings);
 });
 
-router.delete('/', async (req, res) => {
-  const deletedSettings = await Settings.findByIdAndDelete();
+router.delete("/:id", async (req, res) => {
+  const deletedSettings = await Settings.findByIdAndDelete(req.params.id);
 
   if (!deletedSettings) {
-    return res.status(404).send({ error: 'No Settings to delete' });
+    return res.status(404).send({ error: "No Settings to delete" });
   }
 
-  return res.send({ ok: `Setting '${deletedSettings._id}' deleted`});
+  return res.send({ ok: `Setting '${deletedSettings.name}' deleted` });
 });
 
-router.put('/:id', async (req, res) => {
+router.put("/", async (req, res) => {
   const errors = [];
   if (empty(req.body)) {
     return res.status(400).send({ error: "No fields are filled" });
   }
 
-  let { name, minUser, maxUser } = await Settings.findById(req.params.id);
+  let { name, minUser, maxUser } = await Settings.findById(req.body._id);
 
   if (req.body.newName && req.body.newName !== name) {
     name = req.body.newName;
@@ -82,34 +82,36 @@ router.put('/:id', async (req, res) => {
   }
 
   const roles = await req.body.roles.map((role, index) => {
-    if (role.newMinRole && role.minRole !== role.newMinRole) {
-      role.minRole = role.newMinRole;
-    }
-    if (role.newMaxRole && role.maxRole !== role.newMaxRole) {
+    if (role.newMaxRole && role.newMaxRole !== role.maxRole) {
       role.maxRole = role.newMaxRole;
     }
-    
+
     return role;
   });
-  
+
   if (errors.length) {
     return res.status(402).send(errors);
   } else {
-    const updatedSettings = await Settings.findOneAndUpdate(req.params.id, {
-      name,
-      minUser,
-      maxUser,
-      roles,
-    }, { new: true });
+    const updatedSettings = await Settings.findOneAndUpdate(
+      req.body._id,
+      {
+        name,
+        minUser,
+        maxUser,
+        roles
+      },
+      { new: true }
+    );
+
     if (!updatedSettings) {
-      return res.status(404).send({ error: 'Setting not found' })
+      return res.status(404).send({ error: "Setting not found" });
     }
-    
-    return res.send({ updatedSkill, score: updatedUser.score });
+
+    return res.send({ updatedSettings });
   }
 });
 
-router.post('/', async (req, res) => {
+router.post("/", async (req, res) => {
   const errors = [];
   if (empty(req.body)) {
     errors.push({ body: "No fields are filled" });
@@ -128,26 +130,33 @@ router.post('/', async (req, res) => {
     } else {
       await req.body.roles.map((num, index) => {
         if (empty(num.role_id)) {
-          errors.push({ role_id: `role_id was not passed in ${index} position` });
-        }
+          errors.push({
+            role_id: `role_id was not passed in ${index} position`
+          });
+        } /* Foi verificado que não é necessário ter um nº mínimo de users por Role
         if (empty(num.minRole)) {
-          errors.push({ minRole: `minRole was not passed in ${index+1} position` });
-        }
+          errors.push({
+            minRole: `minRole was not passed in ${index + 1} position`
+          });
+        } */
         if (empty(num.maxRole)) {
-          errors.push({ maxRole: `maxRole was not passed in ${index+1} position` });
+          errors.push({
+            maxRole: `maxRole was not passed in ${index + 1} position`
+          });
         }
       });
     }
   }
-  
+
   if (errors.length) {
     return res.status(402).send(errors);
   } else {
-    const newSetting = await new Settings(req.body).save()
+    const newSetting = await new Settings(req.body)
+      .save()
       .catch(err => res.status(400).send({ error: err }));
 
     if (!newSetting) {
-      return res.status(403).res({ error: 'Unable to save Configuration' });
+      return res.status(403).res({ error: "Unable to save Configuration" });
     }
     return res.send({ newSetting });
   }
