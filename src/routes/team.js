@@ -146,29 +146,34 @@ const randomIndex = tamanho => {
 };
 
 /* criação de time balanceado */
-router.get("/balanceado", async (req, res) => {
+router.post("/balanceado", async (req, res) => {
   console.log();
 
-  const usersPorTime = await usuariosPorTime();
+  /* ordenando os usuários por score e por role */
   const listMinScores = await getUserMinScore();
   const listMaxScores = await getUserMaxScore();
+
+  /* pegando o nº máximo de usuários por time */
+  const usersPorTime = await usuariosPorTime();
   const users = [];
+
+  /* verificando as ordenações e quantidades de usuário por time */
+  if (!listMinScores) {
+    return res.status(400).send({
+      error: `Não existem mais usuários com o mínimo de Score para criação de times`
+    });
+  }
+
+  if (!listMaxScores) {
+    return res.status(400).send({
+      error: `Não existem mais usuários com o máximo de Score para criação de times`
+    });
+  }
 
   if (!usersPorTime) {
     return res.status(400).send({ error: `Problema com o usersPorTime` });
   }
 
-  if (!listMinScores) {
-    return res
-      .status(400)
-      .send({ error: `Não existem mais usuários para criação de times` });
-  }
-
-  if (!listMaxScores) {
-    return res
-      .status(400)
-      .send({ error: `Não existem mais usuários para criação de times` });
-  }
   /**
    * devemos decidir como será passado a escolha do admin do sistema
    * será por req.query, req.params ou req.body?
@@ -184,9 +189,12 @@ router.get("/balanceado", async (req, res) => {
           return acc;
         }, 0);
 
+        /* verifica se essa role já existe no time */
         if (!users.some(n => n.role_id == listMaxScores[i].role_id)) {
+          /* se não existe, incluí o usuário */
           users.push(listMaxScores[i]);
         } else if (qtdRoleMaxTeam < maxRole(listMaxScores[i].role_id)) {
+          /* se existe verifica se a quantidade de users com essa role já chegou ao máximo */
           users.push(listMaxScores[i]);
         }
       }
@@ -199,9 +207,12 @@ router.get("/balanceado", async (req, res) => {
           return acc;
         }, 0);
 
+        /* verifica se essa role já existe no time */
         if (!users.some(n => n.role_id == listMinScores[i].role_id)) {
+          /* se não existe, incluí o usuário */
           users.push(listMinScores[i]);
         } else if (qtdRoleMinTeam < maxRole(listMinScores[i].role_id)) {
+          /* se existe verifica se a quantidade de users com essa role já chegou ao máximo */
           users.push(listMinScores[i]);
         }
       }
@@ -209,9 +220,11 @@ router.get("/balanceado", async (req, res) => {
   }
 
   const teams = await Team.find();
+  /* verifica se já existe a quantidade total de times */
   if (teams.length < usersPorTime[0].numeroDeTimes + 1) {
     const name = `Team ${teams.length + 1}`;
 
+    /* cria o time no MongoDB */
     const newTeam = await new Team({
       name,
       scoreTeam: users.reduce((acc, cur) => acc + cur.score, 0),
@@ -220,6 +233,7 @@ router.get("/balanceado", async (req, res) => {
       .save()
       .catch(err => res.status(400).send(err));
 
+    /* atualiza o campo team_id dos usuários do time que foi criado */
     const updatedUsers = users.map(async u => {
       await User.findByIdAndUpdate(
         { _id: u._id },
