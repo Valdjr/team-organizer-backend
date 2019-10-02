@@ -25,7 +25,7 @@ const getName = async number => {
 
 router.get("/", async (req, res) => {
   const teste = [];
-  for (let i = 0; i < 1234; i++) {
+  for (let i = 0; i < 1000; i++) {
     const newUser = await getName(i);
     const users = await Users.findOne({ email: newUser.email });
 
