@@ -20,6 +20,12 @@ const validateEmail = function(email) {
   return re.test(email);
 };
 
+router.get("/teste", async (req, res) => {
+  const users = await Users.find({ score: 0 });
+
+  return res.send(users);
+});
+
 router.get(["/", "/:id"], async (req, res) => {
   const { id } = req.params;
   const { filter, search, sort } = req.query;
