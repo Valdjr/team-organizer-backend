@@ -3,9 +3,7 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const empty = require("is-empty");
 require("../models/Settings");
-require("../models/Roles");
 const Settings = mongoose.model("settings");
-const Roles = mongoose.model("roles");
 
 router.get(["/", "/:id"], async (req, res) => {
   const { id } = req.params;
@@ -55,27 +53,23 @@ router.get(["/", "/:id"], async (req, res) => {
   return res.send(settings);
 });
 
-router.delete(["/", "/:id"], async (req, res) => {
-  if (req.params.id) {
-    var deletedSettings = await Settings.findByIdAndDelete(req.params.id);
-  } else {
-    var deletedSettings = await Settings.findOneAndDelete(req.params.id);
-  }
+router.delete("/:id", async (req, res) => {
+  const deletedSettings = await Settings.findByIdAndDelete(req.params.id);
 
-  if (empty(deletedSettings)) {
+  if (!deletedSettings) {
     return res.status(404).send({ error: "No Settings to delete" });
   }
 
   return res.send({ ok: `Setting '${deletedSettings.name}' deleted` });
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/", async (req, res) => {
   const errors = [];
   if (empty(req.body)) {
     return res.status(400).send({ error: "No fields are filled" });
   }
 
-  let { name, minUser, maxUser } = await Settings.findById(req.params.id);
+  let { name, minUser, maxUser } = await Settings.findById(req.body._id);
 
   if (req.body.newName && req.body.newName !== name) {
     name = req.body.newName;
@@ -88,10 +82,7 @@ router.put("/:id", async (req, res) => {
   }
 
   const roles = await req.body.roles.map((role, index) => {
-    if (role.newMinRole && role.minRole !== role.newMinRole) {
-      role.minRole = role.newMinRole;
-    }
-    if (role.newMaxRole && role.maxRole !== role.newMaxRole) {
+    if (role.newMaxRole && role.newMaxRole !== role.maxRole) {
       role.maxRole = role.newMaxRole;
     }
 
@@ -102,7 +93,7 @@ router.put("/:id", async (req, res) => {
     return res.status(402).send(errors);
   } else {
     const updatedSettings = await Settings.findOneAndUpdate(
-      req.params.id,
+      req.body._id,
       {
         name,
         minUser,
@@ -111,35 +102,13 @@ router.put("/:id", async (req, res) => {
       },
       { new: true }
     );
+
     if (!updatedSettings) {
       return res.status(404).send({ error: "Setting not found" });
     }
 
-    return res.send({ updatedSkill, score: updatedUser.score });
+    return res.send({ updatedSettings });
   }
-});
-
-router.post("/teste", async (req, res) => {
-  const roles = await Roles.find();
-
-  const newSetting = await new Settings({
-    name: "</ Open Hack > Shawee",
-    minUser: 2,
-    maxUser: 8,
-    roles: roles.map(r => {
-      return {
-        role_id: r._id,
-        maxRole: 2
-      };
-    })
-  })
-    .save()
-    .catch(err => res.status(400).send({ error: err }));
-
-  if (!newSetting) {
-    return res.status(403).res({ error: "Unable to save Configuration" });
-  }
-  return res.send({ newSetting });
 });
 
 router.post("/", async (req, res) => {
@@ -164,13 +133,12 @@ router.post("/", async (req, res) => {
           errors.push({
             role_id: `role_id was not passed in ${index} position`
           });
-        }
-        /* Foi verificado que não é necessário ter um nº mínimo de users por Role
+        } /* Foi verificado que não é necessário ter um nº mínimo de users por Role
         if (empty(num.minRole)) {
           errors.push({
             minRole: `minRole was not passed in ${index + 1} position`
           });
-        }*/
+        } */
         if (empty(num.maxRole)) {
           errors.push({
             maxRole: `maxRole was not passed in ${index + 1} position`
