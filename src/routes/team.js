@@ -18,6 +18,25 @@ const getAverageScore = async () => {
   return average;
 };
 
+const getScoresTeam = async qtdUsers => {
+  const teams = await Team.find();
+  const average = Math.floor((await getAverageScore()) * qtdUsers);
+
+  return {
+    max: teams.sort((a, b) => {
+      if (!empty(a) && !empty(b)) {
+        return b.scoreTeam - a.scoreTeam;
+      }
+    })[0].scoreTeam,
+    average,
+    min: teams.sort((a, b) => {
+      if (!empty(a) && !empty(b)) {
+        return a.scoreTeam - b.scoreTeam;
+      }
+    })[0].scoreTeam
+  };
+};
+
 /* traz apenas 1 usuário de forma randômica da "role" */
 const usersRole = async role => {
   const users = await User.find({
@@ -39,7 +58,6 @@ const usersRole = async role => {
 
 const maxRole = async role => {
   const { roles } = await Settings.findOne();
-
   const { maxRole } = roles.find(r => (r.role_id = role));
 
   return maxRole;
@@ -81,6 +99,7 @@ const getUserMaxScore = async () => {
 const getUserMinScore = async () => {
   const users = [];
   const { roles } = await Settings.findOne();
+
   for (let i = 0; i < roles.length; i++) {
     users.push(
       await User.findOne(
@@ -140,113 +159,135 @@ const usuariosPorTime = async () => {
   return usersPorTime;
 };
 
-const randomIndex = tamanho => {
-  const i = Math.floor(Math.random() * tamanho + 1);
-  return i;
-};
-
 /* criação de time balanceado */
 router.post("/balanceado", async (req, res) => {
-  console.log();
-
-  /* ordenando os usuários por score e por role */
-  const listMinScores = await getUserMinScore();
-  const listMaxScores = await getUserMaxScore();
-
+  const teste = [];
   /* pegando o nº máximo de usuários por time */
   const usersPorTime = await usuariosPorTime();
-  const users = [];
-
-  /* verificando as ordenações e quantidades de usuário por time */
-  if (!listMinScores) {
-    return res.status(400).send({
-      error: `Não existem mais usuários com o mínimo de Score para criação de times`
-    });
-  }
-
-  if (!listMaxScores) {
-    return res.status(400).send({
-      error: `Não existem mais usuários com o máximo de Score para criação de times`
-    });
-  }
-
-  if (!usersPorTime) {
-    return res.status(400).send({ error: `Problema com o usersPorTime` });
-  }
 
   /**
-   * devemos decidir como será passado a escolha do admin do sistema
-   * será por req.query, req.params ou req.body?
-   * no momento apenas confirmei que será a 1ª opção usersPorTime[0]
+   * Score máximo ideal para o time
+   * ( Média dos Users * QtdUsers para cada time ) * 15%
+   * essa % foi a qual eu achei mais próximos dos users que temos hoje
+   * "scoresTeams": {
+   *  "max": 931, # 19,36%
+   *  "average": 780,
+   *  "min": 652  # 16,41%
+   * }
    */
-  for (var i = 0; i < usersPorTime[0].users; i++) {
-    if (users.length < usersPorTime[0].users) {
-      if (!empty(listMaxScores[i])) {
-        const qtdRoleMaxTeam = users.reduce((acc, cur) => {
-          if (cur.role_id == listMaxScores[i].role_id) {
-            acc += 1;
-          }
-          return acc;
-        }, 0);
+  const averageScore = Math.floor(
+    (await getAverageScore()) * usersPorTime[0].users * 1.15
+  );
 
-        /* verifica se essa role já existe no time */
-        if (!users.some(n => n.role_id == listMaxScores[i].role_id)) {
-          /* se não existe, incluí o usuário */
-          users.push(listMaxScores[i]);
-        } else if (qtdRoleMaxTeam < maxRole(listMaxScores[i].role_id)) {
-          /* se existe verifica se a quantidade de users com essa role já chegou ao máximo */
-          users.push(listMaxScores[i]);
+  /* enquanto não for criado todos os times, continue */
+  for (let j = 0; j < usersPorTime[0].numeroDeTimes; j++) {
+    /* ordenando os usuários por score e por role */
+    const listMinScores = await getUserMinScore();
+    const listMaxScores = await getUserMaxScore();
+    var users = [];
+
+    /* verificando as ordenações e quantidades de usuário por time */
+    if (empty(listMinScores)) {
+      return res.status(400).send({
+        error: `Não existem mais usuários com o mínimo de Score para criação de times`
+      });
+    }
+
+    if (empty(listMaxScores)) {
+      return res.status(400).send({
+        error: `Não existem mais usuários com o máximo de Score para criação de times`
+      });
+    }
+
+    /**
+     * devemos decidir como será passado a escolha do admin do sistema
+     * será por req.query, req.params ou req.body?
+     * no momento apenas confirmei que será a 1ª opção usersPorTime[0]
+     */
+    // enquanto não chegar no máximo de usuários, continue
+    for (var i = 0; i < usersPorTime[0].users; i++) {
+      if (users.length < usersPorTime[0].users) {
+        // soma dos Scores dos users que estão no time que será criado
+        var sumScore = users.reduce((acc, cur) => acc + cur.score, 0);
+
+        // verifica se a lista dos menores scores não é vazia
+        if (!empty(listMinScores[i])) {
+          const qtdRoleMinTeam = users.reduce((acc, cur) => {
+            if (cur.role_id == listMinScores[i].role_id) {
+              acc += 1;
+            }
+            return acc;
+          }, 0);
+
+          // verifica se essa role já existe no time
+          if (!users.some(n => n.role_id == listMinScores[i].role_id)) {
+            /* se não existe, incluí o usuário */
+            users.push(listMinScores[i]);
+          } else if (qtdRoleMinTeam < maxRole(listMinScores[i].role_id)) {
+            /* se existe verifica se a quantidade de users com essa role já chegou ao máximo */
+            users.push(listMinScores[i]);
+          }
         }
-      }
 
-      if (!empty(listMinScores[i])) {
-        const qtdRoleMinTeam = users.reduce((acc, cur) => {
-          if (cur.role_id == listMinScores[i].role_id) {
-            acc += 1;
+        // verifica se a soma dos scores é menor que a média aceita
+        if (sumScore < averageScore) {
+          if (!empty(listMaxScores[i])) {
+            if (sumScore + listMaxScores[i].score <= averageScore) {
+              const qtdRoleMaxTeam = users.reduce((acc, cur) => {
+                if (cur.role_id == listMaxScores[i].role_id) {
+                  acc += 1;
+                }
+                return acc;
+              }, 0);
+
+              /* verifica se essa role já existe no time */
+              if (!users.some(n => n.role_id == listMaxScores[i].role_id)) {
+                /* se não existe, incluí o usuário */
+                users.push(listMaxScores[i]);
+              } else if (qtdRoleMaxTeam < maxRole(listMaxScores[i].role_id)) {
+                /* se existe verifica se a quantidade de users com essa role já chegou ao máximo */
+                users.push(listMaxScores[i]);
+              }
+            }
           }
-          return acc;
-        }, 0);
-
-        /* verifica se essa role já existe no time */
-        if (!users.some(n => n.role_id == listMinScores[i].role_id)) {
-          /* se não existe, incluí o usuário */
-          users.push(listMinScores[i]);
-        } else if (qtdRoleMinTeam < maxRole(listMinScores[i].role_id)) {
-          /* se existe verifica se a quantidade de users com essa role já chegou ao máximo */
-          users.push(listMinScores[i]);
         }
       }
     }
+
+    const teams = await Team.find();
+    /* verifica se já existe a quantidade total de times */
+    if (teams.length < usersPorTime[0].numeroDeTimes + 1) {
+      const name = `Team ${teams.length + 1}`;
+
+      /* cria o time no MongoDB */
+      const newTeam = await new Team({
+        name,
+        scoreTeam: users.reduce((acc, cur) => acc + cur.score, 0),
+        users
+      })
+        .save()
+        .catch(err => res.status(400).send(err));
+
+      /* atualiza o campo team_id dos usuários do time que foi criado */
+      const updatedUsers = users.map(async u => {
+        await User.findByIdAndUpdate(
+          { _id: u._id },
+          { team_id: newTeam._id },
+          { new: true }
+        );
+      });
+      //return res.send(newTeam);
+      teste.push(newTeam);
+    }
   }
 
-  const teams = await Team.find();
-  /* verifica se já existe a quantidade total de times */
-  if (teams.length < usersPorTime[0].numeroDeTimes + 1) {
-    const name = `Team ${teams.length + 1}`;
-
-    /* cria o time no MongoDB */
-    const newTeam = await new Team({
-      name,
-      scoreTeam: users.reduce((acc, cur) => acc + cur.score, 0),
-      users
-    })
-      .save()
-      .catch(err => res.status(400).send(err));
-
-    /* atualiza o campo team_id dos usuários do time que foi criado */
-    const updatedUsers = users.map(async u => {
-      await User.findByIdAndUpdate(
-        { _id: u._id },
-        { team_id: newTeam._id },
-        { new: true }
-      );
-    });
-    return res.send(newTeam);
+  if (!teste) {
+    return res
+      .status(400)
+      .send({ error: `Não existem mais usuários para criar time!` });
   }
 
-  return res
-    .status(400)
-    .send({ error: `Não existem mais usuários para criar time!` });
+  return res.send({ qtd: teste.length });
 });
 
 /* rota para encontrar a melhor quantidade de usuários por time */
@@ -256,22 +297,18 @@ router.get("/usuariosPorTime", async (req, res) => {
 });
 
 /* rota para trazer TODOS os times */
-router.get("/all", (req, res) => {
-  Team.find(
+router.get("/all", async (req, res) => {
+  const teams = await Team.find(
     {},
-    {
-      // campos escondidos
-      __v: 0,
-      createdAt: 0,
-      updatedAt: 0
-    }
-  )
-    .then(teams => {
-      res.send(teams);
-    })
-    .catch(err => {
-      res.send({ error: err });
-    });
+    { __v: 0, createdAt: 0, updatedAt: 0, users: 0 }
+  );
+
+  if (empty(teams)) {
+    return res.status(402).send({ error: "Não existe nenhum time" });
+  }
+  const scoresTeams = await getScoresTeam(8);
+
+  return res.send({ scoresTeams, teams });
 });
 
 /* rota para trazer 1 time */
