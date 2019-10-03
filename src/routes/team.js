@@ -298,17 +298,30 @@ router.get("/usuariosPorTime", async (req, res) => {
 
 /* rota para trazer TODOS os times */
 router.get("/all", async (req, res) => {
-  const teams = await Team.find(
-    {},
-    { __v: 0, createdAt: 0, updatedAt: 0, users: 0 }
-  );
+  if (empty(req.query.withUsers)) {
+    var teams = await Team.find(
+      {},
+      { __v: 0, createdAt: 0, updatedAt: 0, users: 0 }
+    );
 
-  if (empty(teams)) {
-    return res.status(402).send({ error: "Não existe nenhum time" });
+    if (empty(teams)) {
+      return res.status(402).send({ error: "Não existe nenhum time" });
+    }
+  } else {
+    var teams = await Team.find({}, { __v: 0, createdAt: 0, updatedAt: 0 });
+
+    if (empty(teams)) {
+      return res.status(402).send({ error: "Não existe nenhum time" });
+    }
   }
-  const scoresTeams = await getScoresTeam(8);
 
-  return res.send({ scoresTeams, teams });
+  if (empty(req.query.scoresTeams)) {
+    return res.send(teams);
+  } else {
+    const scoresTeams = await getScoresTeam(8);
+
+    return res.send({ scoresTeams, teams });
+  }
 });
 
 /* rota para trazer 1 time */

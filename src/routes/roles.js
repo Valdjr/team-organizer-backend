@@ -6,9 +6,14 @@ require("../models/Roles");
 const Roles = mongoose.model("roles");
 
 router.get("/all", (req, res) => {
-  Roles.find(/*{}, {
-    _id: 0, name: 1, description: 1
-  }*/)
+  Roles.find(
+    {},
+    {
+      _id: 1,
+      name: 1,
+      description: 1
+    }
+  )
     .then(roles => {
       res.json(roles);
     })
@@ -18,7 +23,11 @@ router.get("/all", (req, res) => {
 });
 
 router.get("/:id", (req, res) => {
-  Roles.findById(req.params.id)
+  Roles.findById(req.params.id, {
+    _id: 1,
+    name: 1,
+    description: 1
+  })
     .then(role => {
       if (!role) {
         res.status(404).send({ error: `ID '${req.params.id}' not found` });
@@ -31,7 +40,14 @@ router.get("/:id", (req, res) => {
 });
 
 router.delete("/:id", (req, res) => {
-  Roles.findByIdAndDelete({ _id: req.params.id })
+  Roles.findByIdAndDelete(
+    { _id: req.params.id },
+    {
+      _id: 1,
+      name: 1,
+      description: 1
+    }
+  )
     .then(role => {
       res.send({ apagado: `Foi apagado a Role '${role.name}'` });
     })

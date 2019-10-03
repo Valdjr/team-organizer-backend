@@ -20,12 +20,6 @@ const validateEmail = function(email) {
   return re.test(email);
 };
 
-router.get("/teste", async (req, res) => {
-  const users = await Users.find({ score: 0 });
-
-  return res.send(users);
-});
-
 router.get(["/", "/:id"], async (req, res) => {
   const { id } = req.params;
   const { filter, search, sort, page } = req.query;
@@ -42,7 +36,7 @@ router.get(["/", "/:id"], async (req, res) => {
     const limit = 10; // limite de resultados por página
     const skip = limit * (page - 1); // quantos resultados irá pular
 
-    var users = await Users.find(filterBy)
+    var users = await Users.find(filterBy, { __v: 0 })
       .skip(skip)
       .limit(limit)
       .populate("role_id", { name: 1 })
@@ -53,7 +47,7 @@ router.get(["/", "/:id"], async (req, res) => {
       });
   } else {
     /* se não tiver nenhuma informação na query.page, não irá paginar */
-    var users = await Users.find(filterBy)
+    var users = await Users.find(filterBy, { __v: 0 })
       .populate("role_id", { name: 1 })
       .populate("skill_id", { skills: 1, name: 1, level: 1 })
       .populate("team_id", { name: 1, project: 1 })
