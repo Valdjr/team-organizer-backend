@@ -5,13 +5,25 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const path = require("path");
 const db = require("./config/db");
-
+const fa = require("fs"); 
+const https = require('https');
 const settings = require("./routes/settings");
 const team = require("./routes/team");
 const roles = require("./routes/roles");
 const skill = require("./routes/skill");
 const users = require("./routes/users");
 const sort = require("./routes/sort");
+
+var key = fs.readFileSync('encryption/private.key');
+var cert = fs.readFileSync( 'encryption/primary.crt' );
+var ca = fs.readFileSync( 'encryption/intermediate.crt' );
+
+var options ={
+  key: key,
+  cert:cert,
+  ca:ca
+};
+
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -53,6 +65,10 @@ app.use("/sort", sort);
 
 //server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Servidor '${process.env.NODE_ENV}' rodando na porta ${PORT}`);
+const SSLPORT = process.env.SSLPORT || 5001;
+https.createServer(options,app).listen(PORT,()=> { 
+  console.log(`Servidor ${process.env.NODE_ENV} rodando em SSL na porta ${PORT}`)
+})
+app.listen(PORT, () => {console.log(`Servidor '${process.env.NODE_ENV}' rodando na porta ${PORT}`
+  );
 });
