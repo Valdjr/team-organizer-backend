@@ -35,6 +35,27 @@ const usersRole = async role => {
   return listId[sorteio];
 };
 
+const usuariosPorTime = async () => {
+  const totalUsers = await User.find().count();
+  const { minUser, maxUser } = await Settings.findOne();
+  const usersPorTime = []; 
+  for (var i=maxUser; i>=minUser; i--) {
+    var numeroDeTimes = parseInt(totalUsers/i);
+    var resto = totalUsers%i;
+    if (resto >= minUser || resto == 0) {
+      usersPorTime.push({users: i, numeroDeTimes: numeroDeTimes, sucesso: true, usersNoUltimoTime: resto});
+    } else {
+      usersPorTime.push({users: i, numeroDeTimes: numeroDeTimes, sucesso: false, usersNoUltimoTime: resto, falta: minUser-resto});
+    }
+  }
+  return usersPorTime;
+}
+
+router.get("/usuariosPorTime", async (req, res) => {
+  const usersPorTime = await usuariosPorTime();
+  res.json(usersPorTime);
+});
+
 router.get("/all", (req, res) => {
   Team.find(
     {},
