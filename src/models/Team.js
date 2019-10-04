@@ -24,10 +24,8 @@ const Team = new Schema(
     },
     users: [
       {
-        user_id: {
-          type: Schema.Types.ObjectId,
-          ref: "users"
-        }
+        type: Schema.Types.ObjectId,
+        ref: "users"
       }
     ]
   },
