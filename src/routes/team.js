@@ -308,10 +308,15 @@ router.get("/all", async (req, res) => {
       return res.status(402).send({ error: "Não existe nenhum time" });
     }
   } else {
-    var teams = await Team.find(
-      {},
-      { __v: 0, createdAt: 0, updatedAt: 0 }
-    ).populate("users", { __v: 0, team_id: 0 });
+    var teams = await Team.find({}, { __v: 0, createdAt: 0, updatedAt: 0 })
+      // .populate("users", { __v: 0, team_id: 0 })
+      .populate({
+        path: "users",
+        populate: [
+          { path: "role_id", select: "name" },
+          { path: "skill_id", select: "skills" }
+        ]
+      });
 
     if (empty(teams)) {
       return res.status(402).send({ error: "Não existe nenhum time" });
