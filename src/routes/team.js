@@ -4,9 +4,11 @@ const empty = require("is-empty");
 const mongoose = require("mongoose");
 require("../models/Team");
 require("../models/Users");
+require("../models/Roles");
 require("../models/Settings");
 const Team = mongoose.model("teams");
 const User = mongoose.model("users");
+const Roles = mongoose.model("roles");
 const Settings = mongoose.model("settings");
 
 /* acha a média da pontuação */
@@ -296,40 +298,72 @@ router.get("/usuariosPorTime", async (req, res) => {
   res.json(usersPorTime);
 });
 
-/* rota para trazer TODOS os times */
-router.get("/all", async (req, res) => {
-  if (empty(req.query.withUsers)) {
-    var teams = await Team.find(
-      {},
-      { __v: 0, createdAt: 0, updatedAt: 0, users: 0 }
-    );
+/* rota para trazer TODOS os times ou um único time por ID*/
+router.get(["/", "/:id"], async (req, res) => {
+  const { id } = req.params;
+  const { filter, search, withUsers, scoresTeams, page } = req.query;
 
-    if (empty(teams)) {
-      return res.status(402).send({ error: "Não existe nenhum time" });
-    }
-  } else {
-    var teams = await Team.find({}, { __v: 0, createdAt: 0, updatedAt: 0 })
-      // .populate("users", { __v: 0, team_id: 0 })
-      .populate({
+  const reg = new RegExp("^" + (!empty(search) ? search : ""), "i");
+  const filterBy = !empty(id)
+    ? { _id: id }
+    : !empty(filter)
+    ? { [filter]: reg }
+    : {};
+  const noShow = {
+    ...{
+      __v: 0,
+      createdAt: 0,
+      updatedAt: 0
+    },
+    ...(empty(withUsers) ? { users: 0 } : {})
+  };
+  const toPopulate = !empty(withUsers)
+    ? {
         path: "users",
-        populate: [
-          { path: "role_id", select: "name" },
-          { path: "skill_id", select: "skills" }
-        ]
+        select:
+          withUsers === "roles"
+            ? { role_id: 1 }
+            : { _id: 1, name: 1, avatar: 1 },
+        populate: [{ path: "role_id", select: "name" }]
+      }
+    : "";
+
+  var teams = await Team.find(filterBy, noShow)
+    .populate(toPopulate)
+    .catch(err => {
+      res.status(400).send({ error: err });
+    });
+
+  let rolesBase = {};
+  if (withUsers === "roles") {
+    const rolesCadastradas = await Roles.find({}, { name: 1 });
+    rolesCadastradas.map(role => {
+      rolesBase[role.name] = 0;
+    });
+
+    teams = teams.map(team => {
+      let rolesTeam = team.users.map(user => user.role_id.name);
+      let roles = { ...rolesBase };
+      let total = 0;
+      rolesTeam.forEach(i => {
+        roles[i] = (roles[i] || 0) + 1;
+        total++;
       });
-
-    if (empty(teams)) {
-      return res.status(402).send({ error: "Não existe nenhum time" });
-    }
+      delete team._doc.users;
+      return { ...team._doc, roles, total };
+    });
   }
 
-  if (empty(req.query.scoresTeams)) {
-    return res.send(teams);
-  } else {
-    const scoresTeams = await getScoresTeam(8);
-
-    return res.send({ scoresTeams, teams });
-  }
+  const roleBaseToShow = !empty(rolesBase) ? { rolesBase } : {};
+  return res.send(
+    scoresTeams && teams.length > 0
+      ? {
+          scoresTeams: await getScoresTeam(8),
+          teams,
+          ...roleBaseToShow
+        }
+      : { teams, ...roleBaseToShow }
+  );
 });
 
 /* rota para trazer 1 time */
