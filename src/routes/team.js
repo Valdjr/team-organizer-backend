@@ -161,13 +161,6 @@ const usuariosPorTime = async () => {
   return usersPorTime;
 };
 
-var a = [
-  {sucesso: false, nome: 'a'},
-  {sucesso: true, nome: 'b'},
-  {sucesso: true, nome: 'c'},
-  {sucesso: false, nome: 'd'}
-]
-
 /* criação de time balanceado */
 router.post("/balanceado", async (req, res) => {
   const teste = [];
