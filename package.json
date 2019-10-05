@@ -27,6 +27,7 @@
     "yup": "^0.27.0"
   },
   "devDependencies": {
-    "nodemon": "^1.19.2"
+    "nodemon": "^1.19.2",
+    "saslprep": "^1.0.3"
   }
 }
