@@ -5,8 +5,8 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const path = require("path");
 const db = require("./config/db");
-const https = require('https');
-const fs = require('fs');
+const https = require("https");
+const fs = require("fs");
 const settings = require("./routes/settings");
 const team = require("./routes/team");
 const roles = require("./routes/roles");
@@ -15,10 +15,9 @@ const users = require("./routes/users");
 const sort = require("./routes/sort");
 
 const options = {
-  key: fs.readFileSync((path.resolve(__dirname, 'cert.key'))),
-  cert: fs.readFileSync((path.resolve(__dirname, 'cert.pem'))),
+  key: fs.readFileSync(path.resolve(__dirname, "cert.key")),
+  cert: fs.readFileSync(path.resolve(__dirname, "cert.pem"))
 };
-
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -38,7 +37,8 @@ mongoose
   .connect(db.mongoURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useFindAndModify: false
+    useFindAndModify: false,
+    useCreateIndex: true
   })
   .then(() => {
     console.log(`Conectado com sucesso no mongoDB`);
@@ -61,9 +61,11 @@ app.use("/sort", sort);
 //server
 const PORT = process.env.PORT || 5000;
 const SSLPORT = process.env.SSLPORT || 5001;
-https.createServer(options,app).listen(SSLPORT,()=> { 
-  console.log(`Servidor ${process.env.NODE_ENV} rodando em SSL na porta ${SSLPORT}`)
-})
-app.listen(PORT, () => {console.log(`Servidor '${process.env.NODE_ENV}' rodando na porta ${PORT}`
+https.createServer(options, app).listen(SSLPORT, () => {
+  console.log(
+    `Servidor '${process.env.NODE_ENV}' rodando em SSL na porta ${SSLPORT}`
   );
+});
+app.listen(PORT, () => {
+  console.log(`Servidor '${process.env.NODE_ENV}' rodando na porta ${PORT}`);
 });
