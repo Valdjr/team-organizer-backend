@@ -303,7 +303,10 @@ router.get(["/", "/:id"], async (req, res) => {
   const { id } = req.params;
   const { filter, search, withUsers, scoresTeams, page } = req.query;
 
-  const reg = new RegExp("^" + (!empty(search) ? search : ""), "i");
+  const reg =
+    filter === "scoreTeam" && !empty(search)
+      ? Number(search)
+      : new RegExp("^" + (!empty(search) ? search : ""), "i");
   const filterBy = !empty(id)
     ? { _id: id }
     : !empty(filter)
