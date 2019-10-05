@@ -161,11 +161,23 @@ const usuariosPorTime = async () => {
   return usersPorTime;
 };
 
+var a = [
+  {sucesso: false, nome: 'a'},
+  {sucesso: true, nome: 'b'},
+  {sucesso: true, nome: 'c'},
+  {sucesso: false, nome: 'd'}
+]
+
 /* criação de time balanceado */
 router.post("/balanceado", async (req, res) => {
   const teste = [];
   /* pegando o nº máximo de usuários por time */
   const usersPorTime = await usuariosPorTime();
+  const UsersPorTimeSucesso = usersPorTime.filter(opcao => {
+    if (opcao.sucesso) return opcao;
+  });
+  
+  const opcaoUsersPorTime =  UsersPorTimeSucesso[0];
 
   /**
    * Score máximo ideal para o time
@@ -178,11 +190,11 @@ router.post("/balanceado", async (req, res) => {
    * }
    */
   const averageScore = Math.floor(
-    (await getAverageScore()) * usersPorTime[0].users * 1.15
+    (await getAverageScore()) * opcaoUsersPorTime.users * 1.15
   );
 
   /* enquanto não for criado todos os times, continue */
-  for (let j = 0; j < usersPorTime[0].numeroDeTimes; j++) {
+  for (let j = 0; j < opcaoUsersPorTime.numeroDeTimes; j++) {
     /* ordenando os usuários por score e por role */
     const listMinScores = await getUserMinScore();
     const listMaxScores = await getUserMaxScore();
@@ -204,11 +216,11 @@ router.post("/balanceado", async (req, res) => {
     /**
      * devemos decidir como será passado a escolha do admin do sistema
      * será por req.query, req.params ou req.body?
-     * no momento apenas confirmei que será a 1ª opção usersPorTime[0]
+     * no momento apenas confirmei que será a 1ª opção opcaoUsersPorTime
      */
     // enquanto não chegar no máximo de usuários, continue
-    for (var i = 0; i < usersPorTime[0].users; i++) {
-      if (users.length < usersPorTime[0].users) {
+    for (var i = 0; i < opcaoUsersPorTime.users; i++) {
+      if (users.length < opcaoUsersPorTime.users) {
         // soma dos Scores dos users que estão no time que será criado
         var sumScore = users.reduce((acc, cur) => acc + cur.score, 0);
 
@@ -258,7 +270,7 @@ router.post("/balanceado", async (req, res) => {
 
     const teams = await Team.find();
     /* verifica se já existe a quantidade total de times */
-    if (teams.length < usersPorTime[0].numeroDeTimes + 1) {
+    if (teams.length < opcaoUsersPorTime.numeroDeTimes + 1) {
       const name = `Team ${teams.length + 1}`;
 
       /* cria o time no MongoDB */
