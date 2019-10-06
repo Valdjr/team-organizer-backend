@@ -161,6 +161,33 @@ const usuariosPorTime = async () => {
   return usersPorTime;
 };
 
+/**
+ * @param {*} items = deverá receber um array
+ * @param {*} pageActual = receberá o número da página que o usuário deseja acessar
+ * @param {*} limitItems = irá delimitar quantos items por página.
+ */
+const listItems = (items, pageActual, limitItems) => {
+  let result = [];
+  let totalPage = Math.ceil(items.length / limitItems);
+  let count = pageActual * limitItems - limitItems;
+  let delimiter = count + limitItems;
+
+  if (pageActual <= totalPage) {
+    // TODO: Create loop
+    for (let i = count; i < delimiter; i++) {
+      if (items[i] != null) {
+        // TODO: Push in Result
+        result.push(items[i]);
+      }
+
+      // TODO: Increment count
+      count++;
+    }
+  }
+
+  return result;
+};
+
 /* criação de time balanceado */
 router.post("/balanceado", async (req, res) => {
   const teste = [];
@@ -169,8 +196,8 @@ router.post("/balanceado", async (req, res) => {
   const UsersPorTimeSucesso = usersPorTime.filter(opcao => {
     if (opcao.sucesso) return opcao;
   });
-  
-  const opcaoUsersPorTime =  UsersPorTimeSucesso[0];
+
+  const opcaoUsersPorTime = UsersPorTimeSucesso[0];
 
   /**
    * Score máximo ideal para o time
@@ -306,7 +333,19 @@ router.get("/usuariosPorTime", async (req, res) => {
 /* rota para trazer TODOS os times ou um único time por ID*/
 router.get(["/", "/:id"], async (req, res) => {
   const { id } = req.params;
-  const { filter, search, withUsers, scoresTeams, page } = req.query;
+  const { filter, search, withUsers, scoresTeams } = req.query;
+  var { page, limit } = req.query;
+
+  empty(page) ? (page = 1) : page;
+  empty(limit) ? (limit = 9999) : limit;
+
+  /* pegando o nº máximo de usuários por time */
+  const usersPorTime = await usuariosPorTime();
+  const UsersPorTimeSucesso = usersPorTime.filter(opcao => {
+    if (opcao.sucesso) return opcao;
+  });
+
+  const opcaoUsersPorTime = UsersPorTimeSucesso[0];
 
   const reg =
     filter === "scoreTeam" && !empty(search)
@@ -363,14 +402,16 @@ router.get(["/", "/:id"], async (req, res) => {
   }
 
   const roleBaseToShow = !empty(rolesBase) ? { rolesBase } : {};
+  console.log("Está passadndo aqui, linha 400");
   return res.send(
     scoresTeams && teams.length > 0
       ? {
-          scoresTeams: await getScoresTeam(8),
-          teams,
+          scoresTeams: await getScoresTeam(opcaoUsersPorTime.users),
+          teams: listItems(teams, page, Number(limit)),
           ...roleBaseToShow
         }
-      : { teams, ...roleBaseToShow }
+      : { ...roleBaseToShow, teams: listItems(teams, page, Number(limit)) }
+    // : { teams, ...roleBaseToShow }
   );
 });
 

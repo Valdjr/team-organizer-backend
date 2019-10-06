@@ -97,7 +97,7 @@ router.get(["/", "/:id"], async (req, res) => {
           .map(u => ({
             name: u.name,
             id: u.id,
-            usersRole: listItems(u.usersRole, page, limit)
+            usersRole: listItems(u.usersRole, page, Number(limit))
           }));
 
         break;
@@ -125,12 +125,16 @@ router.get(["/", "/:id"], async (req, res) => {
             id: u.id,
             name: u.name,
             score: true,
-            users: listItems(u.users, page, limit)
+            users: listItems(u.users, page, Number(limit))
           }));
 
         break;
       default:
+        console.log(`O valor de sort é '${sort}'`);
     }
+  } else {
+    var t = listItems(users, page, Number(limit));
+    return res.send({ qtd: t.length, t });
   }
 
   return res.json({ qtd: users.length, users });
