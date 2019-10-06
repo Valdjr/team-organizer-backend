@@ -20,9 +20,43 @@ const validateEmail = function(email) {
   return re.test(email);
 };
 
+/**
+ * @param {*} items = deverá receber um array
+ * @param {*} pageActual = receberá o número da página que o usuário deseja acessar
+ * @param {*} limitItems = irá delimitar quantos items por página.
+ */
+const listItems = (items, pageActual, limitItems) => {
+  let result = [];
+  let totalPage = Math.ceil(items.length / limitItems);
+  let count = pageActual * limitItems - limitItems;
+  let delimiter = count + limitItems;
+
+  if (pageActual <= totalPage) {
+    // TODO: Create loop
+    for (let i = count; i < delimiter; i++) {
+      if (items[i] != null) {
+        // TODO: Push in Result
+        result.push(items[i]);
+      }
+
+      // TODO: Increment count
+      count++;
+    }
+  }
+
+  return result;
+};
+
+/**
+ * @param {*} id Identificador do usuário
+ * @queryparam {*} page Número da página, caso seja vazio, será atribuído o nº 1
+ * @queryparam {*} limit Quantidade de registros que devem ser mostrados, caso seja vazio,
+ * será atribuído o nº 999
+ */
 router.get(["/", "/:id"], async (req, res) => {
   const { id } = req.params;
-  const { filter, search, sort, page } = req.query;
+  const { filter, search, sort } = req.query;
+  let { page, limit } = req.query;
 
   const reg = new RegExp("^" + (!empty(search) ? search : ""), "i");
   const filterBy = !empty(id)
@@ -31,45 +65,41 @@ router.get(["/", "/:id"], async (req, res) => {
     ? { [filter]: reg }
     : {};
 
-  /* se o nº da página for maior que 0, aí é realizado a paginação */
-  if (page > 0) {
-    const limit = 10; // limite de resultados por página
-    const skip = limit * (page - 1); // quantos resultados irá pular
+  var users = await Users.find(filterBy, { __v: 0 })
+    .populate("role_id", { name: 1 })
+    .populate("skill_id", { skills: 1, name: 1, level: 1 })
+    .populate("team_id", { name: 1, project: 1 })
+    .catch(err => {
+      res.status(400).send({ error: err });
+    });
 
-    var users = await Users.find(filterBy, { __v: 0 })
-      .skip(skip)
-      .limit(limit)
-      .populate("role_id", { name: 1 })
-      .populate("skill_id", { skills: 1, name: 1, level: 1 })
-      .populate("team_id", { name: 1, project: 1 })
-      .catch(err => {
-        res.status(400).send({ error: err });
-      });
-  } else {
-    /* se não tiver nenhuma informação na query.page, não irá paginar */
-    var users = await Users.find(filterBy, { __v: 0 })
-      .populate("role_id", { name: 1 })
-      .populate("skill_id", { skills: 1, name: 1, level: 1 })
-      .populate("team_id", { name: 1, project: 1 })
-      .catch(err => {
-        res.status(400).send({ error: err });
-      });
+  if (empty(page)) {
+    page = 1;
+  }
+
+  if (empty(limit)) {
+    limit = 9999;
   }
 
   if (empty(id) && !empty(sort)) {
     switch (sort) {
-      /* PRECISA VERIFICAR A QUESTÃO DA PAGINAÇÃO DAS ROLES */
       case "roles":
         let roles = await Roles.find({}).sort("name");
         users = roles
           .map(({ name, _id: id }) => ({
             name: name.toUpperCase(),
             id,
-            users: users.filter(user => {
+            usersRole: users.filter(user => {
               return String(id) == String(user.role_id._id);
             })
           }))
-          .filter(group => group.users.length > 0);
+          .filter(async group => group.usersRole.length > 0)
+          .map(u => ({
+            name: u.name,
+            id: u.id,
+            usersRole: listItems(u.usersRole, page, limit)
+          }));
+
         break;
       case "score":
         let scores = users.map(user => user.score);
@@ -81,10 +111,22 @@ router.get(["/", "/:id"], async (req, res) => {
             }
           });
 
-        users = scores.map(score => {
-          const new_users = users.filter(user => user.score === score);
-          return { id: score, name: `${score}`, score: true, users: new_users };
-        });
+        users = scores
+          .map(score => {
+            const new_users = users.filter(user => user.score === score);
+            return {
+              id: score,
+              name: `${score}`,
+              score: true,
+              users: new_users
+            };
+          })
+          .map(u => ({
+            id: u.id,
+            name: u.name,
+            score: true,
+            users: listItems(u.users, page, limit)
+          }));
 
         break;
       default:
