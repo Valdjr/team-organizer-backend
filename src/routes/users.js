@@ -49,8 +49,8 @@ const listItems = (items, pageActual, limitItems) => {
 
 /**
  * @param {*} id Identificador do usuário
- * @queryparam {*} page Número da página, caso seja vazio, será atribuído o nº 1
- * @queryparam {*} limit Quantidade de registros que devem ser mostrados, caso seja vazio,
+ * @param {*} page Número da página, caso seja vazio, será atribuído o nº 1
+ * @param {*} limit Quantidade de registros que devem ser mostrados, caso seja vazio,
  * será atribuído o nº 999
  */
 router.get(["/", "/:id"], async (req, res) => {
@@ -73,14 +73,8 @@ router.get(["/", "/:id"], async (req, res) => {
       res.status(400).send({ error: err });
     });
 
-  if (empty(page)) {
-    page = 1;
-  }
-
-  if (empty(limit)) {
-    limit = 9999;
-  }
-
+  empty(page) ? (page = 1) : page;
+  empty(limit) ? (limit = users.length) : limit;
   if (empty(id) && !empty(sort)) {
     switch (sort) {
       case "roles":
@@ -110,8 +104,8 @@ router.get(["/", "/:id"], async (req, res) => {
               return a - b;
             }
           });
-
-        users = scores
+        console.log(`Estamos na página '${page}', com o limite de '${limit}'`);
+        users = listItems(scores, page, Number(limit))
           .map(score => {
             const new_users = users.filter(user => user.score === score);
             return {
@@ -133,8 +127,10 @@ router.get(["/", "/:id"], async (req, res) => {
         console.log(`O valor de sort é '${sort}'`);
     }
   } else {
-    var t = listItems(users, page, Number(limit));
-    return res.send({ qtd: t.length, t });
+    return res.send({
+      qtd: listItems(users, page, Number(limit)).length,
+      users: listItems(users, page, Number(limit))
+    });
   }
 
   return res.json({ qtd: users.length, users });

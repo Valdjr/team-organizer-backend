@@ -188,6 +188,12 @@ const listItems = (items, pageActual, limitItems) => {
   return result;
 };
 
+/* rota para encontrar a melhor quantidade de usuários por time */
+router.get("/usuariosPorTime", async (req, res) => {
+  const usersPorTime = await usuariosPorTime();
+  res.json(usersPorTime);
+});
+
 /* criação de time balanceado */
 router.post("/balanceado", async (req, res) => {
   const teste = [];
@@ -324,20 +330,11 @@ router.post("/balanceado", async (req, res) => {
   return res.send({ qtd: teste.length });
 });
 
-/* rota para encontrar a melhor quantidade de usuários por time */
-router.get("/usuariosPorTime", async (req, res) => {
-  const usersPorTime = await usuariosPorTime();
-  res.json(usersPorTime);
-});
-
 /* rota para trazer TODOS os times ou um único time por ID*/
 router.get(["/", "/:id"], async (req, res) => {
   const { id } = req.params;
   const { filter, search, withUsers, scoresTeams } = req.query;
   var { page, limit } = req.query;
-
-  empty(page) ? (page = 1) : page;
-  empty(limit) ? (limit = 9999) : limit;
 
   /* pegando o nº máximo de usuários por time */
   const usersPorTime = await usuariosPorTime();
@@ -381,6 +378,9 @@ router.get(["/", "/:id"], async (req, res) => {
       res.status(400).send({ error: err });
     });
 
+  empty(page) ? (page = 1) : page;
+  empty(limit) ? (limit = teams.length) : limit;
+
   let rolesBase = {};
   if (withUsers === "roles") {
     const rolesCadastradas = await Roles.find({}, { name: 1 });
@@ -402,7 +402,7 @@ router.get(["/", "/:id"], async (req, res) => {
   }
 
   const roleBaseToShow = !empty(rolesBase) ? { rolesBase } : {};
-  console.log("Está passadndo aqui, linha 400");
+
   return res.send(
     scoresTeams && teams.length > 0
       ? {
