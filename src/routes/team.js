@@ -320,34 +320,32 @@ router.post("/balanceado", async (req, res) => {
       }
     }
 
-    if (empty(users)) {
-      return;
-    }
+    if (!empty(users)) {
+      const teams = await Team.find();
+      /* verifica se já existe a quantidade total de times */
+      if (teams.length < opcaoUsersPorTime.numeroDeTimes + 20) {
+        const name = `Team ${teams.length + 1}`;
 
-    const teams = await Team.find();
-    /* verifica se já existe a quantidade total de times */
-    if (teams.length < opcaoUsersPorTime.numeroDeTimes + 20) {
-      const name = `Team ${teams.length + 1}`;
+        /* cria o time no MongoDB */
+        const newTeam = await new Team({
+          name,
+          scoreTeam: users.reduce((acc, cur) => acc + cur.score, 0),
+          users
+        })
+          .save()
+          .catch(err => res.status(400).send(err));
 
-      /* cria o time no MongoDB */
-      const newTeam = await new Team({
-        name,
-        scoreTeam: users.reduce((acc, cur) => acc + cur.score, 0),
-        users
-      })
-        .save()
-        .catch(err => res.status(400).send(err));
+        /* atualiza o campo team_id dos usuários do time que foi criado */
+        users.map(async u => {
+          await User.findByIdAndUpdate(
+            { _id: u._id },
+            { team_id: newTeam._id },
+            { new: true }
+          );
+        });
 
-      /* atualiza o campo team_id dos usuários do time que foi criado */
-      users.map(async u => {
-        await User.findByIdAndUpdate(
-          { _id: u._id },
-          { team_id: newTeam._id },
-          { new: true }
-        );
-      });
-
-      teste.push(newTeam);
+        teste.push(newTeam);
+      }
     }
   }
 
@@ -470,41 +468,13 @@ router.delete("/all", async (req, res) => {
   console.log("Apagando todos os Teams");
   const teams = await Team.find();
   await Team.deleteMany().catch(err => res.status(400).send(err));
+  await User.updateMany({}, { team_id: undefined }, { new: true });
 
-  if (!empty(teams)) {
-    teams.map(async (deleted, index) => {
-      console.log(`Apagando o time: ${deleted.name}, e o index é ${index}`);
-      const users = await Team.find();
-
-      users.map(async (deleted, index) => {
-        await User.findByIdAndUpdate(
-          { _id: deleted._id },
-          {
-            team_id: undefined
-          }
-        ).catch(err => err);
-      });
-    });
-  } else {
-    const users = await User.find();
-
-    users.map(async (deleted, index) => {
-      console.log(`Ajustando o user: ${deleted.name}, e o index é ${index}`);
-      await User.findByIdAndUpdate(
-        { _id: deleted._id },
-        {
-          team_id: undefined
-        }
-      ).catch(err => err);
-    });
-  }
-
-  return res.send({ qtd: teams.length });
   setTimeout(() => {
     return res.send({
       qtd: teams.length
     });
-  }, 12000);
+  }, 2000);
 }); /**/
 
 /* rota para apagar 1 time */
