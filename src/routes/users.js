@@ -65,6 +65,7 @@ router.get(["/", "/:id"], async (req, res) => {
     ? { [filter]: reg }
     : {};
 
+  //var users = await Users.find({ team_id: [undefined, null] }, { __v: 0 })
   var users = await Users.find(filterBy, { __v: 0 })
     .populate("role_id", { name: 1 })
     .populate("skill_id", { skills: 1, name: 1, level: 1 })
@@ -128,7 +129,7 @@ router.get(["/", "/:id"], async (req, res) => {
     }
   } else {
     return res.send({
-      qtd: listItems(users, page, Number(limit)).length,
+      qtd: users.length,
       users: listItems(users, page, Number(limit))
     });
   }
