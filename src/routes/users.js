@@ -93,6 +93,7 @@ router.get(["/", "/:id"], async (req, res) => {
           .map(u => ({
             name: u.name,
             id: u.id,
+            qtd: u.users.length,
             users: listItems(u.users, page, Number(limit))
           }));
 
@@ -113,6 +114,7 @@ router.get(["/", "/:id"], async (req, res) => {
               id: score,
               name: `${score}`,
               score: true,
+              qtd: new_users.length,
               users: new_users
             };
           })
@@ -120,6 +122,7 @@ router.get(["/", "/:id"], async (req, res) => {
             id: u.id,
             name: u.name,
             score: true,
+            qtd: u.qtd,
             users: listItems(u.users, page, Number(limit))
           }));
 
