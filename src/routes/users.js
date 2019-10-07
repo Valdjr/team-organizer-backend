@@ -105,7 +105,6 @@ router.get(["/", "/:id"], async (req, res) => {
               return a - b;
             }
           });
-        console.log(`Estamos na página '${page}', com o limite de '${limit}'`);
         users = listItems(scores, page, Number(limit))
           .map(score => {
             const new_users = users.filter(user => user.score === score);
@@ -134,7 +133,7 @@ router.get(["/", "/:id"], async (req, res) => {
     });
   }
 
-  return res.json({ qtd: users.length, users });
+  return res.json({ qtd, users });
 });
 
 router.delete("/:id", (req, res) => {

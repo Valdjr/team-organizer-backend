@@ -162,7 +162,7 @@ const getUserMinScore = async () => {
 
 /* encontra a melhor quantidade de usuários por times */
 const usuariosPorTime = async () => {
-  const totalUsers = await User.find().count();
+  const totalUsers = await User.find().estimatedDocumentCount();
   const { minUser, maxUser } = await Settings.findOne();
   const usersPorTime = [];
   for (var i = maxUser; i >= minUser; i--) {
@@ -375,14 +375,15 @@ router.get(["/", "/:id"], async (req, res) => {
   const opcaoUsersPorTime = UsersPorTimeSucesso[0];
 
   const reg =
-    filter === "scoreTeam" && !empty(search)
-      ? Number(search)
+    filter === "scoreTeam"
+      ? { $gt: Number(empty(search) ? 0 : search) }
       : new RegExp("^" + (!empty(search) ? search : ""), "i");
   const filterBy = !empty(id)
     ? { _id: id }
     : !empty(filter)
     ? { [filter]: reg }
     : {};
+  const sortby = empty(id) && !empty(filter) ? { [filter]: 1 } : {};
   const noShow = {
     ...{
       __v: 0,
@@ -404,6 +405,7 @@ router.get(["/", "/:id"], async (req, res) => {
 
   var teams = await Team.find(filterBy, noShow)
     .populate(toPopulate)
+    .sort(sortby)
     .catch(err => {
       res.status(400).send({ error: err });
     });
@@ -432,16 +434,18 @@ router.get(["/", "/:id"], async (req, res) => {
   }
 
   const roleBaseToShow = !empty(rolesBase) ? { rolesBase } : {};
+  const qtd = teams.length;
+  teams = listItems(teams, page, Number(limit));
 
   return res.send(
     scoresTeams && teams.length > 0
       ? {
           scoresTeams: await getScoresTeam(opcaoUsersPorTime.users),
-          teams: listItems(teams, page, Number(limit)),
+          teams,
+          qtd,
           ...roleBaseToShow
         }
-      : { ...roleBaseToShow, teams: listItems(teams, page, Number(limit)) }
-    // : { teams, ...roleBaseToShow }
+      : { ...roleBaseToShow, teams, qtd }
   );
 });
 
@@ -498,7 +502,7 @@ router.delete("/all", async (req, res) => {
 
   setTimeout(() => {
     return res.send({
-      ok: `Foram apagados ${teams.length} times`
+      qtd: teams.length
     });
   }, 12000);
 }); /**/
