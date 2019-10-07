@@ -403,6 +403,7 @@ router.get(["/", "/:id"], async (req, res) => {
       }
     : "";
 
+  const qtd = await Team.estimatedDocumentCount();
   var teams = await Team.find(filterBy, noShow)
     .populate(toPopulate)
     .sort(sortby)
@@ -434,7 +435,6 @@ router.get(["/", "/:id"], async (req, res) => {
   }
 
   const roleBaseToShow = !empty(rolesBase) ? { rolesBase } : {};
-  const qtd = teams.length;
   teams = listItems(teams, page, Number(limit));
 
   return res.send(
