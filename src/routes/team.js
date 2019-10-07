@@ -236,7 +236,7 @@ router.post("/balanceado", async (req, res) => {
   const averageScore = await getScoresTeam2(Number(opcaoUsersPorTime.users));
 
   /* enquanto não for criado todos os times, continue */
-  for (let j = 0; j < opcaoUsersPorTime.numeroDeTimes + 2; j++) {
+  for (let j = 0; j < opcaoUsersPorTime.numeroDeTimes + 20; j++) {
     /* ordenando os usuários por score e por role */
     const listMinScores = await getUserMinScore();
     const listMaxScores = await getUserMaxScore();
@@ -469,6 +469,7 @@ router.get("/:id", (req, res) => {
 router.delete("/all", async (req, res) => {
   console.log("Apagando todos os Teams");
   const teams = await Team.find();
+  await Team.deleteMany().catch(err => res.status(400).send(err));
 
   if (!empty(teams)) {
     teams.map(async (deleted, index) => {
@@ -483,8 +484,6 @@ router.delete("/all", async (req, res) => {
           }
         ).catch(err => err);
       });
-
-      await Team.findByIdAndDelete(deleted._id).catch(err => err);
     });
   } else {
     const users = await User.find();
@@ -500,6 +499,7 @@ router.delete("/all", async (req, res) => {
     });
   }
 
+  return res.send({ qtd: teams.length });
   setTimeout(() => {
     return res.send({
       qtd: teams.length
