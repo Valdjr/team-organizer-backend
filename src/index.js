@@ -13,6 +13,7 @@ const roles = require("./routes/roles");
 const skill = require("./routes/skill");
 const users = require("./routes/users");
 const sort = require("./routes/sort");
+const criarUsers = require("./routes/criarUsers");
 
 const options = {
   key: fs.readFileSync(path.resolve(__dirname, "cert.key")),
@@ -21,9 +22,10 @@ const options = {
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE");
   res.header(
     "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
   );
   next();
 });
@@ -57,6 +59,7 @@ app.use("/roles", roles);
 app.use("/skill", skill);
 app.use("/users", users);
 app.use("/sort", sort);
+app.use("/criarUsers", criarUsers);
 
 //server
 const PORT = process.env.PORT || 5000;

@@ -18,18 +18,16 @@ const Team = new Schema(
       required: false,
       maxlength: 255
     },
-    users: [
-      {
-        user_id: {
-          type: Schema.Types.ObjectId,
-          ref: "users"
-        }
-      }
-    ],
-    score: {
+    scoreTeam: {
       type: Number,
       require: false
-    }
+    },
+    users: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "users"
+      }
+    ]
   },
   {
     timestamps: true

@@ -11,6 +11,7 @@ const Users = new Schema({
     required: "[ERROR] Email is required",
     trim: true,
     lowercase: true,
+    index: true,
     unique: true
   },
   discord_id: {

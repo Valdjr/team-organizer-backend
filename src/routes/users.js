@@ -20,9 +20,43 @@ const validateEmail = function(email) {
   return re.test(email);
 };
 
+/**
+ * @param {*} items = deverá receber um array
+ * @param {*} pageActual = receberá o número da página que o usuário deseja acessar
+ * @param {*} limitItems = irá delimitar quantos items por página.
+ */
+const listItems = (items, pageActual, limitItems) => {
+  let result = [];
+  let totalPage = Math.ceil(items.length / limitItems);
+  let count = pageActual * limitItems - limitItems;
+  let delimiter = count + limitItems;
+
+  if (pageActual <= totalPage) {
+    // TODO: Create loop
+    for (let i = count; i < delimiter; i++) {
+      if (items[i] != null) {
+        // TODO: Push in Result
+        result.push(items[i]);
+      }
+
+      // TODO: Increment count
+      count++;
+    }
+  }
+
+  return result;
+};
+
+/**
+ * @param {*} id Identificador do usuário
+ * @param {*} page Número da página, caso seja vazio, será atribuído o nº 1
+ * @param {*} limit Quantidade de registros que devem ser mostrados, caso seja vazio,
+ * será atribuído o nº 999
+ */
 router.get(["/", "/:id"], async (req, res) => {
   const { id } = req.params;
   const { filter, search, sort } = req.query;
+  let { page, limit } = req.query;
 
   const reg = new RegExp("^" + (!empty(search) ? search : ""), "i");
   const filterBy = !empty(id)
@@ -31,14 +65,18 @@ router.get(["/", "/:id"], async (req, res) => {
     ? { [filter]: reg }
     : {};
 
-  let users = await Users.find(filterBy)
+  //var users = await Users.find({ team_id: [undefined, null] }, { __v: 0 })
+  var users = await Users.find(filterBy, { __v: 0 })
     .populate("role_id", { name: 1 })
     .populate("skill_id", { skills: 1, name: 1, level: 1 })
     .populate("team_id", { name: 1, project: 1 })
     .catch(err => {
       res.status(400).send({ error: err });
     });
+  const qtd = users.length;
 
+  empty(page) ? (page = 1) : page;
+  empty(limit) ? (limit = users.length) : limit;
   if (empty(id) && !empty(sort)) {
     switch (sort) {
       case "roles":
@@ -51,23 +89,54 @@ router.get(["/", "/:id"], async (req, res) => {
               return String(id) == String(user.role_id._id);
             })
           }))
-          .filter(group => group.users.length > 0);
+          .filter(async group => group.users.length > 0)
+          .map(u => ({
+            name: u.name,
+            id: u.id,
+            qtd: u.users.length,
+            users: listItems(u.users, page, Number(limit))
+          }));
+
         break;
       case "score":
         let scores = users.map(user => user.score);
-        scores = scores.filter((score, pos) => scores.indexOf(score) === pos);
-
-        users = scores.map(score => {
-          const new_users = users.filter(user => user.score === score);
-          return { id: score, name: `${score}`, score: true, users: new_users };
-        });
+        scores = scores
+          .filter((score, pos) => scores.indexOf(score) === pos)
+          .sort((a, b) => {
+            if (!empty(a) && !empty(b)) {
+              return a - b;
+            }
+          });
+        users = listItems(scores, page, Number(limit))
+          .map(score => {
+            const new_users = users.filter(user => user.score === score);
+            return {
+              id: score,
+              name: `${score}`,
+              score: true,
+              qtd: new_users.length,
+              users: new_users
+            };
+          })
+          .map(u => ({
+            id: u.id,
+            name: u.name,
+            score: true,
+            qtd: u.qtd,
+            users: listItems(u.users, page, Number(limit))
+          }));
 
         break;
       default:
     }
+  } else {
+    return res.send({
+      qtd,
+      users: listItems(users, page, Number(limit))
+    });
   }
 
-  return res.json({ qtd: users.length, users });
+  return res.json({ qtd, users });
 });
 
 router.delete("/:id", (req, res) => {
@@ -78,6 +147,29 @@ router.delete("/:id", (req, res) => {
     .catch(err => {
       res.send({ error: err });
     });
+});
+
+router.put("/atualizaScore", async (req, res) => {
+  const users = await Users.find({ score: [0, 1, 2] });
+
+  const updatedUsers = users.map(async u => {
+    const { skills } = !empty(u.skill_id)
+      ? await Skill.findById(u.skill_id)
+      : "";
+
+    const t = await Users.findByIdAndUpdate(
+      u._id,
+      {
+        score: !empty(skills)
+          ? skills.reduce((total, skill) => total + u.exp * skill.level, 0)
+          : 0
+      },
+      { new: true }
+    );
+    return t;
+  });
+
+  return res.send({ updatedUsers });
 });
 
 router.put("/atualizaExp", async (req, res) => {
