@@ -321,7 +321,7 @@ router.post("/balanceado", async (req, res) => {
     }
 
     if (empty(users)) {
-      return res.status(400).send("Nenhum user para montar time");
+      return;
     }
 
     const teams = await Team.find();
@@ -496,10 +496,11 @@ router.delete("/all", async (req, res) => {
     });
   }
 
-  return res.send();
-  return res.send({
-    ok: `Foram apagados ${teams.length} times`
-  });
+  setTimeout(() => {
+    return res.send({
+      ok: `Foram apagados ${teams.length} times`
+    });
+  }, 12000);
 }); /**/
 
 /* rota para apagar 1 time */
