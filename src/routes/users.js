@@ -80,26 +80,24 @@ router.get(["/", "/:id"], async (req, res) => {
   if (empty(id) && !empty(sort)) {
     switch (sort) {
       case "roles":
-        console.log(`Escolhido o ${sort}`);
         let roles = await Roles.find({}).sort("name");
         users = roles
           .map(({ name, _id: id }) => ({
             name: name.toUpperCase(),
             id,
-            usersRole: users.filter(user => {
+            users: users.filter(user => {
               return String(id) == String(user.role_id._id);
             })
           }))
-          .filter(async group => group.usersRole.length > 0)
+          .filter(async group => group.users.length > 0)
           .map(u => ({
             name: u.name,
             id: u.id,
-            usersRole: listItems(u.usersRole, page, Number(limit))
+            users: listItems(u.users, page, Number(limit))
           }));
 
         break;
       case "score":
-        console.log(`Escolhido o ${sort}`);
         let scores = users.map(user => user.score);
         scores = scores
           .filter((score, pos) => scores.indexOf(score) === pos)
