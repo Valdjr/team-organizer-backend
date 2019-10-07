@@ -73,12 +73,14 @@ router.get(["/", "/:id"], async (req, res) => {
     .catch(err => {
       res.status(400).send({ error: err });
     });
+  const qtd = users.length;
 
   empty(page) ? (page = 1) : page;
   empty(limit) ? (limit = users.length) : limit;
   if (empty(id) && !empty(sort)) {
     switch (sort) {
       case "roles":
+        console.log(`Escolhido o ${sort}`);
         let roles = await Roles.find({}).sort("name");
         users = roles
           .map(({ name, _id: id }) => ({
@@ -97,6 +99,7 @@ router.get(["/", "/:id"], async (req, res) => {
 
         break;
       case "score":
+        console.log(`Escolhido o ${sort}`);
         let scores = users.map(user => user.score);
         scores = scores
           .filter((score, pos) => scores.indexOf(score) === pos)
@@ -124,11 +127,10 @@ router.get(["/", "/:id"], async (req, res) => {
 
         break;
       default:
-        console.log(`O valor de sort é '${sort}'`);
     }
   } else {
     return res.send({
-      qtd: users.length,
+      qtd,
       users: listItems(users, page, Number(limit))
     });
   }
