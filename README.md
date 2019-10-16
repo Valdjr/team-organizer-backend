@@ -21,14 +21,14 @@ It was tiring searching for people in a sidebar full of hundreds nicknames and p
 TeamMaker is a response to that problem. The same platform that delivers the users sign up will also organize them by a score number based on their skills and the length of their professional experience. TeamMaker robot will calculate numbers and put the users on teams so that the total team score get balanced.
 That way the event can auto avoid teams which have only developers inside, or teams that have only the most experienced professionals. And the system can be used not only in hackathons, but in any event that has hundreds of people working in different activities.
 
-##How to contribute?
+# How to contribute?
 - Fork this repository;;
 - Create a branch with your feature: `git checkout -b my-feature`
 - Commit your changes: `git commit -m 'feat: My Feature'`;
 - Push to your branch: `git push origin my-feature`.
 - Once your pull request merge is done, you can delete your branch.
 
-#📝 License
+## :memo: License
 This project is under the MIT license. See the LICENSE file for more details.
 
 [Portuguese Version]
