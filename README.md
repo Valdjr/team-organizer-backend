@@ -1,4 +1,5 @@
-[English Version]
+## English Version
+
 #  TeamMaker
 Hello guys! I'm one of the founders of TeamMaker: a platform that analyzes user data and automatically groups people in the most suitable teams possible!	Ola pessoal! Sou um dos fundadores do TeamMaker: uma plataforma que analisa os dados do usuário e agrupa automaticamente as pessoas nas equipes mais adequadas possíveis!
 ## What is TeamMaker? 
@@ -31,7 +32,7 @@ That way the event can auto avoid teams which have only developers inside, or te
 ## :memo: License
 This project is under the MIT license. See the LICENSE file for more details.
 
-[Portuguese Version]
+## Versão em Português
 
 #  TeamMaker
 
